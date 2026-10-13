@@ -1,0 +1,531 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#5f8a1f">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<title>El cuerpo de Nael</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&family=Nunito:wght@600;800&family=Playwrite+ES:wght@400&display=swap">
+<style>
+html{-webkit-text-size-adjust:100%}
+img{max-width:100%}
+[hidden]{display:none!important}
+body{margin:0}
+/* Layout: cuaderno de 2.º — un mapa de misiones (una por aparato del cuerpo) y, dentro, una actividad cada vez con botones grandes para el dedo */
+:root{
+  --bg:#f3f6ee; --card:#ffffff; --ink:#1f2b24; --muted:#5a6a60; --line:#d8dfd0;
+  --accent:#5f8a1f; --accent-ink:#ffffff;
+  --ok:#2f9e5b; --ok-soft:#dcf3e4; --bad:#d6453d; --gap:#eef3ff; --gap-line:#7aa0e0;
+  --c-cuerpo:#0f8f8a; --c-resp:#d4537a; --c-dig:#5f8a1f; --c-circ:#d23b3b; --c-exc:#c98a00; --c-sent:#7a4fc4; --c-loco:#2c6fd1; --c-final:#e07a12;
+  --p1:#e0457b; --p2:#2c6fd1; --p3:#2f9e5b; --p4:#e07a12; --p5:#7a4fc4; --p6:#0f8f8a;
+  --skin:#f4c3a4; --skin-line:#c98b6b;
+  --f-display:"Baloo 2","Trebuchet MS",system-ui,sans-serif;
+  --f-body:"Nunito","Segoe UI",system-ui,sans-serif;
+  --f-school:"Playwrite ES","Segoe Script","Comic Sans MS",cursive;
+  --r:16px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#121815; --card:#1c2420; --ink:#e6efe8; --muted:#9db0a4; --line:#2e3a33;
+  --accent:#8cbf45; --accent-ink:#10160f;
+  --ok:#4cc77e; --ok-soft:#1d3a29; --bad:#ff6b62; --gap:#1d2740; --gap-line:#6f95d8;
+  --c-cuerpo:#2cc1b9; --c-resp:#f07aa0; --c-dig:#8cbf45; --c-circ:#ff6b6b; --c-exc:#f2b32e; --c-sent:#a987ee; --c-loco:#5d9bf2; --c-final:#ffa24a;
+  --p1:#ff6fa0; --p2:#5d9bf2; --p3:#4cc77e; --p4:#ffa24a; --p5:#a987ee; --p6:#2cc1b9;
+  --skin:#d9a283; --skin-line:#a56f52; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#121815; --card:#1c2420; --ink:#e6efe8; --muted:#9db0a4; --line:#2e3a33;
+  --accent:#8cbf45; --accent-ink:#10160f;
+  --ok:#4cc77e; --ok-soft:#1d3a29; --bad:#ff6b62; --gap:#1d2740; --gap-line:#6f95d8;
+  --c-cuerpo:#2cc1b9; --c-resp:#f07aa0; --c-dig:#8cbf45; --c-circ:#ff6b6b; --c-exc:#f2b32e; --c-sent:#a987ee; --c-loco:#5d9bf2; --c-final:#ffa24a;
+  --p1:#ff6fa0; --p2:#5d9bf2; --p3:#4cc77e; --p4:#ffa24a; --p5:#a987ee; --p6:#2cc1b9;
+  --skin:#d9a283; --skin-line:#a56f52; color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:18px;line-height:1.4;padding-inline:16px;padding-block:12px 40px;
+  background-image:linear-gradient(var(--line) 1px,transparent 1px);background-size:100% 34px;background-attachment:local}
+main{max-width:760px;margin:0 auto}
+button{font:inherit;color:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
+button:focus-visible{outline:3px solid var(--gap-line);outline-offset:2px}
+h1,h2,h3{font-family:var(--f-display);line-height:1.1;margin:0;text-wrap:balance}
+
+/* HOME */
+button{touch-action:manipulation;-webkit-user-select:none;user-select:none}
+.hero{display:flex;flex-direction:column;gap:10px;padding-block:4px 20px}
+.hrow{display:flex;align-items:center;gap:10px}
+.eyebrow{flex:1;min-width:0;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:800}
+.hero h1{font-size:clamp(32px,9vw,52px);font-weight:800;color:var(--ink)}
+.hero h1 span{color:var(--accent)}
+.hero p{margin:0;color:var(--muted);font-size:19px;font-weight:800}
+.totals{align-self:flex-start;display:flex;align-items:center;gap:8px;font-family:var(--f-display);font-weight:800;font-size:22px;background:var(--card);border:3px solid #ffc21a;border-radius:999px;padding:4px 18px 4px 8px;font-variant-numeric:tabular-nums}
+.totals svg{width:30px;height:30px}
+.round{flex:none;width:54px;height:54px;border-radius:50%;border:3px solid var(--line);background:var(--card);color:var(--ink);display:grid;place-items:center;box-shadow:0 4px 0 var(--line);transition:transform .08s}
+.round svg{width:28px;height:28px}
+.round:active{transform:translateY(3px);box-shadow:0 1px 0 var(--line)}
+.back{border:2px solid var(--line);background:var(--card);border-radius:999px;padding:10px 18px;font-weight:800}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px 14px;padding-top:8px}
+@media (min-width:640px){.grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
+.mcard{position:relative;display:flex;flex-direction:column;align-items:center;gap:8px;padding:18px 8px 14px;border-radius:24px;background:var(--card);border:3px solid var(--mc);box-shadow:0 6px 0 var(--mc);text-align:center;transition:transform .08s,box-shadow .08s}
+.mcard:active{transform:translateY(5px);box-shadow:0 1px 0 var(--mc)}
+.mcard .ic{flex:none;width:70px;height:70px;border-radius:50%;display:grid;place-items:center;background:var(--mc);color:#fff}
+.mcard .ic svg{width:40px;height:40px}
+.mcard .tx{min-width:0;display:flex;flex-direction:column;align-items:center;gap:4px}
+.mcard .nm{font-family:var(--f-display);font-weight:800;font-size:clamp(19px,5.2vw,22px);line-height:1.05;color:var(--ink)}
+.mcard .sub{font-size:13px;color:var(--muted);line-height:1.2;font-weight:700}
+.stars{display:flex;gap:2px;justify-content:center}
+.stars svg{width:26px;height:26px}
+.mcard.final{grid-column:1/-1;flex-direction:row;justify-content:center;gap:16px;padding:18px 16px 16px}
+.mcard.final .tx{align-items:flex-start;text-align:left}
+.grid>.mcard:nth-child(7){grid-column:1/-1;flex-direction:row;justify-content:center;gap:16px;padding:18px 16px 16px}
+.grid>.mcard:nth-child(7) .tx{align-items:flex-start;text-align:left}
+@media (min-width:640px){.mcard.final,.grid>.mcard:nth-child(7){grid-column:auto;flex-direction:column;padding:18px 8px 14px;gap:8px}.mcard.final .tx,.grid>.mcard:nth-child(7) .tx{align-items:center;text-align:center}}
+.badge{position:absolute;top:-15px;left:50%;transform:translateX(-50%);background:#ffc21a;color:#3a2a00;font-family:var(--f-display);font-weight:800;font-size:15px;padding:2px 12px;border-radius:999px;white-space:nowrap;box-shadow:0 2px 0 #c48f00;animation:bob 1.2s ease-in-out infinite}
+@keyframes bob{50%{transform:translateX(-50%) translateY(-5px)}}
+.parents{margin-top:28px;font-size:15px;color:var(--muted);background:var(--card);border-radius:var(--r);padding:12px 14px;border:2px solid var(--line)}
+.parents summary{font-weight:800;cursor:pointer;color:var(--ink)}
+.parents p{margin:8px 0 0}
+
+/* MISSION */
+#app.mission{padding-bottom:130px}
+.top{display:flex;align-items:center;gap:12px;padding-block:2px 14px}
+.mtitle{flex:1;min-width:0;display:flex;flex-direction:column;gap:7px}
+.mname{font-family:var(--f-display);font-size:19px;font-weight:800;color:var(--mc);line-height:1.1}
+.bar{height:14px;border-radius:999px;background:var(--line);overflow:hidden}
+.bar i{display:block;height:100%;background:var(--mc);border-radius:inherit;transition:width .5s}
+.panel{background:var(--card);border-radius:22px;border:3px solid var(--mc);padding:18px 14px 22px;display:flex;flex-direction:column;gap:16px}
+.qhead{display:flex;gap:10px;align-items:center}
+.qhead h2{font-size:clamp(22px,6vw,28px);flex:1;min-width:0}
+.hint{margin:-6px 0 0;color:var(--muted);font-size:17px;font-weight:700}
+.nextbar{position:fixed;left:0;right:0;bottom:0;z-index:30;background:var(--card);border-top:4px solid var(--ok);padding:14px 16px calc(14px + env(safe-area-inset-bottom,0px));box-shadow:0 -6px 20px rgb(0 0 0 / .12);animation:up .3s ease-out}
+.nextbar .in{max-width:760px;margin:0 auto;display:flex;align-items:center;gap:12px}
+@keyframes up{from{transform:translateY(100%)}}
+.praise{flex:1;min-width:0;font-family:var(--f-display);font-size:clamp(20px,5.6vw,26px);font-weight:800;color:var(--ok);line-height:1.1}
+.next{flex:none;background:var(--accent);color:var(--accent-ink);border:0;border-radius:999px;padding:14px 26px;font-family:var(--f-display);font-weight:800;font-size:22px;box-shadow:0 5px 0 color-mix(in srgb,var(--accent) 55%,#000);transition:transform .08s}
+.next:active{transform:translateY(4px);box-shadow:0 1px 0 color-mix(in srgb,var(--accent) 55%,#000)}
+.ghost{background:var(--card);color:var(--ink);border:3px solid var(--line);box-shadow:0 5px 0 var(--line)}
+.ghost:active{box-shadow:0 1px 0 var(--line)}
+.modal{position:fixed;inset:0;z-index:40;background:rgb(0 0 0 / .5);display:grid;place-items:center;padding:16px}
+.mbox{background:var(--card);border-radius:24px;padding:24px 18px;width:100%;max-width:360px;display:flex;flex-direction:column;gap:14px;text-align:center}
+.mbox .next{width:100%}
+
+/* generic choice buttons */
+.opt{border:3px solid var(--line);background:var(--card);border-radius:16px;padding:12px 14px;font-weight:800;font-size:20px;min-height:58px;text-align:center;box-shadow:0 4px 0 var(--line);transition:transform .08s}
+.opt:active{transform:translateY(3px);box-shadow:0 1px 0 var(--line)}
+@media (hover:hover){.opt:hover{border-color:var(--mc)}}
+.opt.ok{border-color:var(--ok);background:var(--ok-soft);box-shadow:0 4px 0 var(--ok)}
+.opt.no{opacity:.35;text-decoration:line-through;box-shadow:none}
+.shake{animation:shake .4s}
+@keyframes shake{20%,60%{transform:translateX(-7px)}40%,80%{transform:translateX(7px)}}
+.pop{animation:pop .35s}
+@keyframes pop{50%{transform:scale(1.08)}}
+
+/* match */
+.match{position:relative;display:grid;grid-template-columns:1fr 1fr;column-gap:clamp(40px,14vw,140px)}
+.match .col{display:flex;flex-direction:column;gap:12px;position:relative;z-index:1;min-width:0}
+.mi{border:3px solid var(--line);background:var(--card);border-radius:14px;padding:10px;font-weight:800;font-size:18px;min-height:58px;overflow-wrap:break-word;hyphens:auto;box-shadow:0 3px 0 var(--line)}
+@media (max-width:420px){.mi{font-size:16px;padding:8px 6px}}
+.mi.sel{border-color:var(--gap-line);background:var(--gap);transform:scale(1.04)}
+.mi.ok{border-color:var(--pc);color:var(--pc)}
+.mi .em{display:block;font-size:26px;line-height:1.1}
+svg.lines{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:visible;z-index:0}
+
+/* fill */
+.sents{display:flex;flex-direction:column;gap:14px}
+.sents p{margin:0;font-family:var(--f-school);font-size:clamp(19px,4.6vw,24px);line-height:2}
+.gap{display:inline-block;min-width:5.5em;border-bottom:3px dashed var(--gap-line);background:var(--gap);border-radius:6px 6px 0 0;padding:0 8px;text-align:center;font-family:var(--f-body);font-weight:800;line-height:1.5}
+.gap.cur{animation:blink 1.1s infinite}
+.gap.filled{border-bottom-style:solid;border-color:var(--ok);background:var(--ok-soft);color:var(--ok);animation:none}
+@keyframes blink{50%{background:transparent}}
+.bank{display:flex;flex-wrap:wrap;gap:10px}
+.bank .opt{flex:1 1 auto;min-width:6em}
+.bank .opt.used{visibility:hidden}
+
+/* order */
+.order{display:flex;flex-direction:column;gap:10px}
+.ocard{display:flex;align-items:center;gap:12px;text-align:left;border:3px solid var(--line);background:var(--card);border-radius:14px;padding:10px 12px;font-weight:800;font-size:18px}
+.ocard .box{flex:none;width:42px;height:42px;border:3px solid var(--muted);border-radius:8px;display:grid;place-items:center;font-family:var(--f-school);font-size:22px}
+.ocard.ok{border-color:var(--ok);background:var(--ok-soft)}
+.ocard.ok .box{border-color:var(--ok);color:var(--ok)}
+
+/* sort */
+.now{align-self:stretch;font-family:var(--f-display);font-weight:800;font-size:clamp(30px,8vw,40px);padding:10px 30px;border-radius:18px;background:var(--gap);border:3px dashed var(--gap-line);text-align:center}
+.buckets{display:grid;grid-template-columns:1fr;gap:12px}
+@media (min-width:560px){.buckets{grid-template-columns:repeat(var(--n),minmax(0,1fr))}}
+.bucket{display:flex;flex-direction:column;gap:8px;align-items:stretch;border:3px solid var(--mc);background:var(--card);border-radius:16px;padding:12px;min-height:66px;box-shadow:0 4px 0 var(--mc);text-align:center}
+.bucket b{font-family:var(--f-display);font-size:21px;color:var(--mc);line-height:1.1}
+@media (max-width:559px){.bucket{flex-direction:row;align-items:center;text-align:left}.bucket b{flex:none;width:6.5em}.bucket .chips{justify-content:flex-start;flex:1}}
+.chips{display:flex;flex-wrap:wrap;gap:5px;justify-content:center}
+.chips span{font-size:14px;font-weight:800;background:var(--ok-soft);color:var(--ok);border-radius:999px;padding:2px 9px}
+.count{font-size:14px;color:var(--muted);text-align:center}
+
+/* quiz */
+.qtext{font-size:clamp(20px,5vw,24px);font-weight:800;margin:0}
+.opts{display:grid;grid-template-columns:1fr;gap:12px}
+@media (min-width:520px){.opts{grid-template-columns:repeat(auto-fit,minmax(160px,1fr))}}
+.opts.two{grid-template-columns:1fr 1fr}
+.diagram{display:flex;justify-content:center}
+.diagram svg{width:min(240px,70vw);height:auto}
+.dot circle{fill:var(--card);stroke:var(--ink);stroke-width:2.5}
+.dot text{font:800 12px var(--f-body);fill:var(--ink);text-anchor:middle;dominant-baseline:central}
+.dot.cur circle{fill:#ffd23f;stroke:var(--ink);animation:pulse 1s infinite;transform-box:fill-box;transform-origin:center}
+.dot.done circle{fill:var(--ok)} .dot.done text{fill:#fff}
+@keyframes pulse{50%{transform:scale(1.25)}}
+
+/* pulse */
+.heartwrap{display:flex;flex-direction:column;align-items:center;gap:10px}
+.heart{width:120px;height:120px;color:var(--c-circ)}
+.heart.beat{animation:beat .85s infinite}
+@keyframes beat{0%,100%{transform:scale(1)}15%{transform:scale(1.15)}30%{transform:scale(.97)}45%{transform:scale(1.1)}}
+.clock{font-family:var(--f-display);font-weight:800;font-size:46px;font-variant-numeric:tabular-nums}
+
+/* end */
+.end{text-align:center;align-items:center}
+.end .big{display:flex;gap:6px;justify-content:center}
+.end .big svg{width:62px;height:62px}
+.end .btns{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+#fx{position:fixed;inset:0;pointer-events:none;z-index:50}
+.soundt{margin-left:auto}
+@media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<canvas id="fx"></canvas>
+<main id="app"></main>
+
+<script>
+document.documentElement.lang='es';
+const NS='http://www.w3.org/2000/svg';
+const ICONS={
+ cuerpo:'<circle cx="12" cy="5" r="3"/><path d="M12 8v7M6 11h12M12 15l-4 6M12 15l4 6"/>',
+ resp:'<path d="M12 3v7M12 9c-1-1-3-1-4 1-2 3-3 7-3 9 0 1 1 2 3 1l3-2zM12 9c1-1 3-1 4 1 2 3 3 7 3 9 0 1-1 2-3 1l-3-2z"/>',
+ dig:'<path d="M9 2v5c0 3-4 3-4 8 0 4 4 7 9 6 4-1 6-5 4-9-1-2-3-3-5-1"/>',
+ circ:'<path d="M12 20s-7-4.5-7-10a4 4 0 0 1 7-2.5A4 4 0 0 1 19 10c0 5.5-7 10-7 10z"/>',
+ exc:'<path d="M12 3c3 4 6 7.5 6 11a6 6 0 0 1-12 0c0-3.5 3-7 6-11z"/>',
+ sent:'<path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',
+ loco:'<path d="M8 8l8 8"/><circle cx="6.5" cy="5" r="2"/><circle cx="5" cy="6.5" r="2"/><circle cx="17.5" cy="19" r="2"/><circle cx="19" cy="17.5" r="2"/>',
+ final:'<path d="M12 2l3 6.5 7 .8-5.2 4.8 1.4 7L12 17.6 5.8 21.1l1.4-7L2 9.3l7-.8z"/>'
+};
+const icon=(k,sw=2.2)=>`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${sw}" stroke-linecap="round" stroke-linejoin="round">${ICONS[k]}</svg>`;
+const starSvg=on=>`<svg viewBox="0 0 24 24"><path d="M12 2l3 6.5 7 .8-5.2 4.8 1.4 7L12 17.6 5.8 21.1l1.4-7L2 9.3l7-.8z" fill="${on?'#ffc21a':'none'}" stroke="${on?'#e09a00':'var(--line)'}" stroke-width="2" stroke-linejoin="round"/></svg>`;
+
+/* ---------- Dibujos para "¿cómo se llama el número...?" ---------- */
+const HEAD=(cx,cy,r)=>`<circle cx="${cx}" cy="${cy}" r="${r}" fill="var(--skin)" stroke="var(--skin-line)" stroke-width="2"/><circle cx="${cx-10}" cy="${cy-6}" r="3" fill="var(--ink)"/><circle cx="${cx+10}" cy="${cy-6}" r="3" fill="var(--ink)"/>`;
+const DIAGRAMS={
+ resp:`${HEAD(100,48,34)}<path d="M96 52q4 6 8 0" fill="none" stroke="var(--skin-line)" stroke-width="2.5"/><path d="M88 66q12 8 24 0" fill="none" stroke="#b5475a" stroke-width="3" stroke-linecap="round"/>
+  <path d="M100 82v52M100 120l-14 14M100 120l14 14" stroke="#c9879a" stroke-width="7" fill="none" stroke-linecap="round"/>
+  <ellipse cx="72" cy="172" rx="24" ry="44" fill="#f2a7bb" stroke="#c45a78" stroke-width="2.5"/><ellipse cx="128" cy="172" rx="24" ry="44" fill="#f2a7bb" stroke="#c45a78" stroke-width="2.5"/>`,
+ dig:`${HEAD(100,40,30)}<path d="M88 56q12 8 24 0" fill="none" stroke="#b5475a" stroke-width="3" stroke-linecap="round"/>
+  <path d="M100 72v38q0 10 12 10" fill="none" stroke="#9cc04a" stroke-width="9" stroke-linecap="round"/>
+  <path d="M106 112c10-14 44-12 42 8-2 18-30 22-44 10" fill="#7fae2e" stroke="#4f7514" stroke-width="2.5"/>
+  <rect x="58" y="150" width="96" height="78" rx="26" fill="#c9d3e8" stroke="#7d8fb5" stroke-width="2.5"/>
+  <path d="M74 170q10-8 20 0t20 0 20 0M74 190q10-8 20 0t20 0 20 0M74 210q10-8 20 0t20 0 20 0" fill="none" stroke="#7d8fb5" stroke-width="3"/>`,
+ exc:`<path d="M95 20v170M105 20v170" stroke="#d23b3b" stroke-width="5"/><path d="M105 20v170" stroke="#3b6fd2" stroke-width="5"/>
+  <path d="M60 50c-22 0-22 50 0 50 10 0 12-10 8-25 4-15 2-25-8-25zM140 50c22 0 22 50 0 50-10 0-12-10-8-25-4-15-2-25 8-25z" fill="#9c3434" stroke="#6e1f1f" stroke-width="2.5"/>
+  <path d="M68 92q14 40 24 80M132 92q-14 40-24 80" fill="none" stroke="#e5c84a" stroke-width="5"/>
+  <circle cx="100" cy="196" r="24" fill="#f4d64e" stroke="#b59a14" stroke-width="2.5"/>`
+};
+const DIAG_VIEW={resp:'0 0 200 230',dig:'0 0 200 240',exc:'0 0 200 230'};
+
+/* ---------- Contenido del tema (sacado del libro) ---------- */
+const MISSIONS=[
+{id:'cuerpo',name:'Así eres',sub:'Partes del cuerpo',color:'var(--c-cuerpo)',acts:[
+ {type:'sort',title:'¿Dónde está cada parte?',hint:'Toca la caja correcta.',buckets:['Cabeza','Tronco','Extremidades'],items:[
+   ['Cara','Cabeza'],['Frente','Cabeza'],['Mejillas','Cabeza'],['Barbilla','Cabeza'],
+   ['Espalda','Tronco'],['Tórax','Tronco'],['Abdomen','Tronco'],
+   ['Brazo','Extremidades'],['Mano','Extremidades'],['Pierna','Extremidades'],['Pie','Extremidades']]},
+ {type:'sort',title:'¿Se ve por fuera o está escondido?',hint:'Algunas partes están bajo la piel y otras muy, muy dentro.',buckets:['Por fuera','Bajo la piel','Parte más interna'],items:[
+   ['Ojos','Por fuera'],['Orejas','Por fuera'],['Labios','Por fuera'],
+   ['Músculos','Bajo la piel'],['Huesos','Bajo la piel'],
+   ['Cerebro','Parte más interna'],['Pulmones','Parte más interna'],['Corazón','Parte más interna'],['Estómago','Parte más interna'],['Intestinos','Parte más interna']]},
+ {type:'quiz',title:'Piensa y elige',items:[
+   {q:'Los brazos y las manos son extremidades…',opts:['superiores','inferiores'],a:0},
+   {q:'Las piernas y los pies son extremidades…',opts:['superiores','inferiores'],a:1},
+   {q:'El cuerpo tiene tres partes: cabeza, tronco y…',opts:['extremidades','orejas','pelo'],a:0}]}
+]},
+{id:'resp',name:'Respiras',sub:'Aparato respiratorio',color:'var(--c-resp)',acts:[
+ {type:'label',title:'¿Cómo se llama cada número?',diagram:'resp',opts:['Nariz','Boca','Pulmones','Estómago'],points:[[100,52,'Nariz'],[100,76,'Boca'],[72,172,'Pulmones']]},
+ {type:'fill',title:'Completa las frases',lines:['El aire entra y sale por la [nariz] o por la [boca].','El aire llega hasta los [pulmones].','En los pulmones se toma el [oxígeno].'],extra:['corazón','estómago']},
+ {type:'quiz',title:'¡Vamos a tomar el aire!',items:[
+   {q:'Toma mucho aire. ¿Qué le pasa a tu pecho?',opts:['Se hincha','Se deshincha'],a:0},
+   {q:'Y al echar el aire, tu pecho…',opts:['se hincha','se deshincha'],a:1},
+   {q:'¿Para qué respiramos?',opts:['Para obtener oxígeno','Para hacer la digestión','Para formar la orina'],a:0},
+   {q:'Respirar lo hace el aparato…',opts:['digestivo','respiratorio','locomotor'],a:1}]}
+]},
+{id:'dig',name:'Te alimentas',sub:'Aparato digestivo',color:'var(--c-dig)',acts:[
+ {type:'label',title:'¿Cómo se llama cada número?',hint:'¡Ojo! El estómago es la bolsa y los intestinos son los tubos enrollados.',diagram:'dig',opts:['Boca','Esófago','Estómago','Intestinos'],points:[[100,48,'Boca'],[100,92,'Esófago'],[128,122,'Estómago'],[106,190,'Intestinos']]},
+ {type:'order',title:'El viaje de la comida',hint:'Toca primero la parte por donde entra la comida.',items:['Boca','Esófago','Estómago','Intestinos']},
+ {type:'order',title:'Ordena las etapas',hint:'¿Qué pasa primero? Toca en orden.',items:['Entrada y masticación','Paso hasta el estómago','Digestión','Obtención de sustancias','Expulsión de restos']},
+ {type:'match',title:'Une con flechas',hint:'Toca una parte y luego lo que hace.',pairs:[['Boca','Mastica la comida'],['Esófago','Lleva la comida al estómago'],['Estómago','Hace la digestión'],['Intestinos','Sacan las sustancias']]},
+ {type:'quiz',title:'Piensa y elige',items:[
+   {q:'¿Qué hace el aparato digestivo?',opts:['Saca de los alimentos lo que necesitamos','Mueve los huesos','Bombea la sangre'],a:0},
+   {q:'Los restos que no necesitamos…',opts:['se expulsan','se quedan para siempre'],a:0}]}
+]},
+{id:'circ',name:'Transportas',sub:'Aparato circulatorio',color:'var(--c-circ)',acts:[
+ {type:'fill',title:'Completa las frases',lines:['El [corazón] impulsa la sangre.','La sangre circula por los vasos [sanguíneos].','La sangre reparte el [oxígeno] por todo el cuerpo.','Todo esto lo hace el aparato [circulatorio].'],extra:['pulmones','respiratorio']},
+ {type:'quiz',title:'¿Verdadero o falso?',tf:true,items:[
+   {q:'Cada pulsación es un latido del corazón.',a:true},
+   {q:'El pulso se puede notar en la muñeca.',a:true},
+   {q:'Después de correr, el corazón late más despacio.',a:false},
+   {q:'Hacer deporte fortalece el corazón.',a:true},
+   {q:'La sangre está quieta dentro del cuerpo.',a:false}]},
+ {type:'pulse',title:'¡Tómate el pulso!'}
+]},
+{id:'exc',name:'Eliminas desechos',sub:'Aparato excretor',color:'var(--c-exc)',acts:[
+ {type:'label',title:'¿Cómo se llama cada número?',diagram:'exc',opts:['Riñones','Vejiga','Corazón','Pulmones'],points:[[140,75,'Riñones'],[100,196,'Vejiga']]},
+ {type:'order',title:'Ordena del 1 al 3',items:['La sangre lleva los desechos a los riñones','En los riñones se forma la orina','La orina se guarda en la vejiga y se expulsa']},
+ {type:'fill',title:'Completa las frases',lines:['En los [riñones] se forma la orina.','En la [vejiga] se almacena la orina.','El aparato [excretor] elimina lo que no necesitamos.'],extra:['estómago','digestivo']}
+]},
+{id:'sent',name:'Notas y reaccionas',sub:'Sentidos, cerebro y nervios',color:'var(--c-sent)',acts:[
+ {type:'match',title:'Une cada sentido con su parte',pairs:[['Vista','👁️ Ojos'],['Gusto','👅 Lengua'],['Oído','👂 Orejas'],['Olfato','👃 Nariz'],['Tacto','✋ Piel']]},
+ {type:'match',title:'¿Qué hacemos con cada uno?',pairs:[['👁️ Ojos','Ver'],['👅 Lengua','Saborear'],['👂 Orejas','Oír'],['👃 Nariz','Oler'],['✋ Piel','Tocar']]},
+ {type:'quiz',title:'¿Qué sentido usas?',items:[
+   {q:'🌵 Notas que el cactus pincha.',opts:['Tacto','Vista','Oído'],a:0},
+   {q:'🌼 Hueles una flor.',opts:['Gusto','Olfato','Tacto'],a:1},
+   {q:'🥁 Oyes un tambor.',opts:['Oído','Vista','Olfato'],a:0},
+   {q:'🍦 Saboreas un helado.',opts:['Tacto','Gusto','Oído'],a:1},
+   {q:'📺 Ves la tele.',opts:['Vista','Olfato','Gusto'],a:0}]},
+ {type:'order',title:'Escuchas música. ¿Qué pasa?',items:['El oído nota el sonido','Los nervios llevan la información al cerebro','El cerebro da órdenes para reaccionar']},
+ {type:'fill',title:'Completa',lines:['Notamos lo que pasa gracias a los [sentidos], el [cerebro] y los [nervios].','Reaccionamos, por ejemplo, [moviéndonos].'],extra:['pulmones','riñones']}
+]},
+{id:'loco',name:'Te mueves',sub:'Aparato locomotor',color:'var(--c-loco)',acts:[
+ {type:'fill',title:'Completa las frases',lines:['Para movernos tenemos el aparato [locomotor].','El esqueleto está formado por los [huesos] y las [articulaciones].','Los [músculos] se estiran y se encogen para mover el cuerpo.'],extra:['digestivo','nervios']},
+ {type:'sort',title:'¿Hueso, articulación o músculo?',hint:'Las articulaciones son donde se dobla el cuerpo.',buckets:['Hueso','Articulación','Músculo'],items:[
+   ['Cráneo','Hueso'],['Costillas','Hueso'],['Húmero','Hueso'],['Fémur','Hueso'],['Tibia','Hueso'],
+   ['Muñeca','Articulación'],['Codo','Articulación'],['Hombro','Articulación'],['Rodilla','Articulación'],['Tobillo','Articulación'],
+   ['Frontal','Músculo'],['Bíceps','Músculo'],['Pectorales','Músculo'],['Abdominales','Músculo'],['Cuádriceps','Músculo'],['Gemelos','Músculo']]},
+ {type:'quiz',title:'¿Dónde está?',items:[
+   {q:'El fémur está en…',opts:['la pierna','el brazo','la cabeza'],a:0},
+   {q:'El cráneo está en…',opts:['la cabeza','el pie','la barriga'],a:0},
+   {q:'El bíceps está en…',opts:['el brazo','la pierna','la espalda'],a:0},
+   {q:'Las costillas están en…',opts:['el pecho','la mano','la rodilla'],a:0},
+   {q:'Los gemelos están en…',opts:['la pierna, por detrás','la cara','el brazo'],a:0},
+   {q:'Los músculos están unidos al…',opts:['esqueleto','corazón','estómago'],a:0}]}
+]}
+];
+
+const FINAL={id:'final',name:'Examen final',sub:'Un poco de todo el tema',color:'var(--c-final)',build(){
+  const quiz=[],tf=[];
+  MISSIONS.forEach(m=>m.acts.forEach(a=>{if(a.type==='quiz')(a.tf?tf:quiz).push(...a.items)}));
+  return [
+   {type:'match',title:'Une cada aparato con una parte',pairs:[['Respiratorio','Pulmones'],['Digestivo','Estómago'],['Circulatorio','Corazón'],['Excretor','Riñones'],['Locomotor','Huesos']]},
+   {type:'quiz',title:'Pregunta rápida',items:shuffle(quiz).slice(0,6)},
+   {type:'fill',title:'Completa',lines:['Respiras con el aparato [respiratorio] y te alimentas con el aparato [digestivo].','Transportas sustancias por medio de la [sangre].','Gracias al aparato [locomotor] bailas, caminas y haces deporte.'],extra:['excretor','cerebro']},
+   {type:'quiz',title:'¿Verdadero o falso?',tf:true,items:shuffle(tf).slice(0,4)},
+   {type:'match',title:'¿Qué hace cada aparato?',pairs:[['Respiratorio','Toma el oxígeno'],['Circulatorio','Reparte la sangre'],['Excretor','Forma la orina'],['Locomotor','Nos mueve']]}
+  ];
+}};
+
+/* ---------- utilidades ---------- */
+function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]]}return a}
+function h(tag,attrs={},...kids){const e=document.createElement(tag);for(const k in attrs){if(k==='html')e.innerHTML=attrs[k];else if(k.startsWith('on'))e[k]=attrs[k];else e.setAttribute(k,attrs[k])}kids.forEach(c=>c!=null&&e.append(c));return e}
+function shake(e){e.classList.remove('shake');void e.offsetWidth;e.classList.add('shake')}
+function pop(e){e.classList.remove('pop');void e.offsetWidth;e.classList.add('pop')}
+const store={get(){try{return JSON.parse(localStorage.getItem('nael-cuerpo')||'{}')}catch(e){return {}}},set(v){try{localStorage.setItem('nael-cuerpo',JSON.stringify(v))}catch(e){}}};
+let soundOn=true;try{soundOn=localStorage.getItem('nael-sonido')!=='0'}catch(e){}
+let ac=null;
+function tone(fs,dur=.12,type='triangle'){if(!soundOn)return;try{ac=ac||new (window.AudioContext||window.webkitAudioContext)();let t=ac.currentTime;fs.forEach(f=>{const o=ac.createOscillator(),g=ac.createGain();o.type=type;o.frequency.value=f;g.gain.setValueAtTime(.18,t);g.gain.exponentialRampToValueAtTime(.001,t+dur);o.connect(g).connect(ac.destination);o.start(t);o.stop(t+dur);t+=dur*.9})}catch(e){}}
+let mistakes=0;
+const good=()=>tone([660,880]);
+const bad=()=>{mistakes++;tone([220,180],.15,'sine')};
+const canSpeak='speechSynthesis' in window;
+function speak(t){try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t.replace(/[\u{1F300}-\u{1FAFF}☀-➿️]/gu,''));u.lang='es-ES';u.rate=.9;speechSynthesis.speak(u)}catch(e){}}
+const PRAISE=['¡Muy bien, Nael!','¡Genial!','¡Eres un crack!','¡Perfecto!','¡Así se hace!','¡Lo sabes todo!'];
+let redraw=null;window.addEventListener('resize',()=>redraw&&redraw());
+
+/* ---------- pantallas ---------- */
+const app=document.getElementById('app');
+const SND_ON='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9v6h4l5 4V5L8 9z"/><path d="M16 9a4 4 0 0 1 0 6M18.5 6.5a8 8 0 0 1 0 11"/></svg>';
+const SND_OFF='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9v6h4l5 4V5L8 9z"/><path d="M16.5 9.5l5 5M21.5 9.5l-5 5"/></svg>';
+const HOME_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h5v-6h4v6h5V10"/></svg>';
+function home(){
+  redraw=null;app.className='';const prog=store.get();
+  const all=[...MISSIONS,FINAL];
+  const total=all.reduce((n,m)=>n+(prog[m.id]||0),0);
+  const nextM=all.find(m=>!prog[m.id]);
+  app.innerHTML='';
+  const snd=h('button',{class:'round','aria-label':'Sonido',html:soundOn?SND_ON:SND_OFF});
+  snd.onclick=()=>{soundOn=!soundOn;try{localStorage.setItem('nael-sonido',soundOn?'1':'0')}catch(e){}snd.innerHTML=soundOn?SND_ON:SND_OFF;if(soundOn)good()};
+  app.append(h('header',{class:'hero'},
+    h('div',{class:'hrow'},h('span',{class:'eyebrow'},'Conocimiento del Medio · Tema 1'),snd),
+    h('h1',{html:'La aventura <span>del cuerpo</span>'}),
+    h('p',{},'Toca una misión para jugar.'),
+    h('div',{class:'totals',html:starSvg(true)+`<span>${total} de ${all.length*3}</span>`})));
+  const g=h('div',{class:'grid'});
+  all.forEach(m=>{
+    const st=prog[m.id]||0,fin=m.id==='final';
+    const b=h('button',{class:'mcard'+(fin?' final':''),style:`--mc:${m.color}`,onclick(){start(m)}},
+      h('span',{class:'ic',html:icon(fin?'final':m.id)}),
+      h('span',{class:'tx'},h('span',{class:'nm'},m.name),h('span',{class:'sub'},m.sub),
+        h('span',{class:'stars',html:[1,2,3].map(n=>starSvg(n<=st)).join('')})));
+    if(m===nextM)b.append(h('span',{class:'badge'},total?'¡Sigue aquí!':'¡Empieza aquí!'));
+    g.append(b);
+  });
+  app.append(g,h('details',{class:'parents'},h('summary',{},'Para papá y mamá'),
+    h('p',{},'Cada misión dura unos 5 minutos. Si falla, puede volver a intentarlo hasta acertar; las estrellas dependen de los fallos. El botón del altavoz lee la pregunta en voz alta. Lo conseguido se guarda en este dispositivo.'),
+    h('button',{class:'back',style:'margin-top:10px',onclick(){store.set({});home()}},'Borrar estrellas')));
+  window.scrollTo(0,0);
+}
+
+let M,acts,idx;
+function start(m){M=m;acts=m.build?m.build():m.acts;idx=0;mistakes=0;render()}
+function render(){
+  redraw=null;app.className='mission';app.innerHTML='';
+  const a=acts[idx];
+  const fill=h('i',{style:`width:${idx/acts.length*100}%`});
+  app.append(h('div',{class:'top',style:`--mc:${M.color}`},
+    h('button',{class:'round','aria-label':'Volver al mapa',html:HOME_SVG,onclick:askExit}),
+    h('div',{class:'mtitle'},h('span',{class:'mname'},`${M.name} · ${idx+1} de ${acts.length}`),h('div',{class:'bar'},fill))));
+  const panel=h('section',{class:'panel',style:`--mc:${M.color}`});
+  const head=h('div',{class:'qhead'},h('h2',{},a.title));
+  if(canSpeak)head.append(h('button',{class:'round','aria-label':'Escuchar',onclick(){speak(a.title+'. '+(a.hint||''))},html:SND_ON}));
+  panel.append(head);
+  if(a.hint)panel.append(h('p',{class:'hint'},a.hint));
+  const body=h('div');panel.append(body);
+  const bar=h('div',{class:'nextbar',hidden:''});
+  app.append(panel,bar);
+  const done=()=>{tone([523,659,784,1047],.11);fill.style.width=`${(idx+1)/acts.length*100}%`;bar.innerHTML='';
+    bar.append(h('div',{class:'in'},h('span',{class:'praise'},PRAISE[Math.random()*PRAISE.length|0]),
+      h('button',{class:'next',onclick(){idx++;idx<acts.length?render():finish()}},idx<acts.length-1?'Siguiente →':'¡Terminar!')));
+    bar.hidden=false};
+  ({match:actMatch,fill:actFill,order:actOrder,sort:actSort,quiz:actQuiz,label:actLabel,pulse:actPulse})[a.type](a,body,done);
+  window.scrollTo(0,0);
+}
+
+function askExit(){
+  const m=h('div',{class:'modal',onclick(e){if(e.target===m)m.remove()}},
+    h('div',{class:'mbox'},h('h2',{},'¿Quieres salir?'),
+      h('p',{class:'hint',style:'margin:0'},'Si sales ahora, esta misión empezará otra vez desde el principio.'),
+      h('button',{class:'next ghost',onclick(){m.remove()}},'No, sigo jugando'),
+      h('button',{class:'next',onclick(){m.remove();home()}},'Sí, volver al mapa')));
+  document.body.append(m);
+}
+
+function finish(){
+  redraw=null;app.className='';
+  const stars=mistakes<=2?3:mistakes<=6?2:1;
+  const prog=store.get();prog[M.id]=Math.max(prog[M.id]||0,stars);store.set(prog);
+  app.innerHTML='';
+  const msg=stars===3?'¡Increíble! Casi sin fallos.':stars===2?'¡Muy bien! Si repites, seguro que sacas 3 estrellas.':'¡Bien hecho! Vamos a repetirla para aprenderla mejor.';
+  app.append(h('section',{class:'panel end',style:`--mc:${M.color}`},
+    h('h2',{},'¡Misión superada!'),
+    h('div',{class:'big',html:[1,2,3].map(n=>starSvg(n<=stars)).join('')}),
+    h('p',{class:'qtext'},msg),
+    h('div',{class:'btns'},h('button',{class:'next',onclick:home},'Volver al mapa'),h('button',{class:'next ghost',onclick(){start(M)}},'Repetir'))));
+  confetti();tone([523,659,784,1047,1319],.13);window.scrollTo(0,0);
+}
+
+/* ---------- actividades ---------- */
+const PCOL=['var(--p1)','var(--p2)','var(--p3)','var(--p4)','var(--p5)','var(--p6)'];
+function itemLabel(t){const m=t.match(/^(\S+)\s(.+)$/);if(m&&/\p{Extended_Pictographic}/u.test(m[1])){const f=document.createDocumentFragment();f.append(h('span',{class:'em'},m[1]),m[2]);return f}return t}
+function actMatch(a,box,done){
+  const wrap=h('div',{class:'match'}),L=h('div',{class:'col'}),R=h('div',{class:'col'});
+  const svg=document.createElementNS(NS,'svg');svg.setAttribute('class','lines');
+  wrap.append(svg,L,R);box.append(wrap);
+  let sel=null,made=[];
+  const mk=(o,side,col)=>{const b=h('button',{class:'mi'},itemLabel(o.t));b.onclick=()=>pick(o,side,b);col.append(b)};
+  shuffle(a.pairs.map((p,i)=>({t:p[0],i}))).forEach(o=>mk(o,'l',L));
+  let rs;do{rs=shuffle(a.pairs.map((p,i)=>({t:p[1],i})))}while(a.pairs.length>2&&rs.every((o,k)=>o.i===k));
+  rs.forEach(o=>mk(o,'r',R));
+  function pick(o,side,b){
+    if(b.classList.contains('ok'))return;
+    if(!sel||sel.side===side){if(sel)sel.b.classList.remove('sel');sel={o,side,b};b.classList.add('sel');return}
+    const s=sel;sel=null;s.b.classList.remove('sel');
+    if(s.o.i===o.i){const c=PCOL[made.length%PCOL.length];[b,s.b].forEach(x=>{x.classList.add('ok');x.style.setProperty('--pc',c);pop(x)});
+      made.push(side==='l'?[b,s.b,c]:[s.b,b,c]);draw();good();if(made.length===a.pairs.length)done()}
+    else{bad();shake(b);shake(s.b)}
+  }
+  function draw(){const r=wrap.getBoundingClientRect();svg.innerHTML='';
+    made.forEach(([l,rt,c])=>{const A=l.getBoundingClientRect(),B=rt.getBoundingClientRect();
+      const x1=A.right-r.left+2,y1=A.top+A.height/2-r.top,x2=B.left-r.left-3,y2=B.top+B.height/2-r.top;
+      const ang=Math.atan2(y2-y1,x2-x1),k=11;
+      const p=(dx,dy)=>`${x2+dx*Math.cos(ang)-dy*Math.sin(ang)},${y2+dx*Math.sin(ang)+dy*Math.cos(ang)}`;
+      svg.insertAdjacentHTML('beforeend',`<line x1="${x1}" y1="${y1}" x2="${x2-6*Math.cos(ang)}" y2="${y2-6*Math.sin(ang)}" style="stroke:${c}" stroke-width="4" stroke-linecap="round"/><circle cx="${x1}" cy="${y1}" r="5" style="fill:${c}"/><polygon points="${p(0,0)} ${p(-k,-6)} ${p(-k,6)}" style="fill:${c}"/>`)})}
+  redraw=draw;
+}
+function actFill(a,box,done){
+  const sents=h('div',{class:'sents'}),gaps=[];
+  a.lines.forEach(line=>{const p=h('p');line.split(/(\[[^\]]+\])/).forEach(part=>{if(!part)return;if(part[0]==='['){const g=h('span',{class:'gap'},' ');g.dataset.a=part.slice(1,-1);gaps.push(g);p.append(g)}else p.append(part)});sents.append(p)});
+  const bank=h('div',{class:'bank'});let cur=0;gaps[0].classList.add('cur');
+  shuffle([...gaps.map(g=>g.dataset.a),...(a.extra||[])]).forEach(w=>{
+    const b=h('button',{class:'opt',onclick(){
+      if(w===gaps[cur].dataset.a){const g=gaps[cur];g.textContent=w;g.classList.remove('cur');g.classList.add('filled');pop(g);b.classList.add('used');b.disabled=true;good();
+        cur++;if(cur<gaps.length)gaps[cur].classList.add('cur');else{bank.querySelectorAll('.opt:not(.used)').forEach(x=>x.disabled=true);done()}}
+      else{bad();shake(b)}}},w);bank.append(b)});
+  box.append(h('div',{class:'sents',style:'gap:18px'},sents,h('p',{class:'hint',style:'margin:0'},'Toca la palabra que va en el hueco que parpadea.'),bank));
+}
+function actOrder(a,box,done){
+  const wrap=h('div',{class:'order'});let next=0;
+  let it;do{it=shuffle(a.items.map((t,i)=>({t,i})))}while(it.every((o,k)=>o.i===k));
+  it.forEach(o=>{const bx=h('span',{class:'box'});const b=h('button',{class:'ocard',onclick(){
+    if(b.classList.contains('ok'))return;
+    if(o.i===next){next++;bx.textContent=next;b.classList.add('ok');pop(b);good();if(next===a.items.length)done()}else{bad();shake(b)}}},bx,h('span',{},o.t));wrap.append(b)});
+  box.append(wrap);
+}
+function actSort(a,box,done){
+  const q=shuffle(a.items);let k=0;
+  const now=h('div',{class:'now'},q[0][0]);const count=h('div',{class:'count'});
+  const bs=h('div',{class:'buckets',style:`--n:${a.buckets.length}`});
+  const upd=()=>count.textContent=`Quedan ${q.length-k}`;upd();
+  a.buckets.forEach(name=>{const chips=h('div',{class:'chips'});const b=h('button',{class:'bucket',onclick(){
+    if(k>=q.length)return;
+    if(q[k][1]===name){chips.append(h('span',{},q[k][0]));pop(b);good();k++;upd();
+      if(k<q.length){now.textContent=q[k][0];pop(now)}else{now.textContent='¡Todo colocado!';done()}}
+    else{bad();shake(b)}}},h('b',{},name),chips);bs.append(b)});
+  box.append(h('div',{class:'sents'},now,count,bs));
+}
+function quizEngine(items,box,done,opts){
+  let k=0;const q=h('p',{class:'qtext'}),os=h('div',{class:'opts'});
+  const wrap=h('div',{class:'sents'});if(opts&&opts.top)wrap.append(opts.top);wrap.append(q,os);box.append(wrap);
+  function show(){const it=items[k];if(opts&&opts.onShow)opts.onShow(k);q.textContent=it.q;os.innerHTML='';os.className='opts'+(it.tf!==undefined||(opts&&opts.two)?' two':'');
+    const choices=it.tf!==undefined?['Verdadero','Falso']:it.opts;const ans=it.tf!==undefined?(it.tf?0:1):it.a;
+    const order=it.tf!==undefined||it.keep?choices.map((c,i)=>i):shuffle(choices.map((c,i)=>i));
+    let locked=false;
+    order.forEach(i=>{const b=h('button',{class:'opt',onclick(){if(locked||b.classList.contains('no'))return;
+      if(i===ans){locked=true;b.classList.add('ok');pop(b);good();if(opts&&opts.onRight)opts.onRight(k);
+        setTimeout(()=>{k++;k<items.length?show():(os.querySelectorAll('.opt').forEach(x=>x.disabled=true),done())},750)}
+      else{bad();shake(b);b.classList.add('no')}}},choices[i]);os.append(b)})}
+  show();
+}
+function actQuiz(a,box,done){
+  const items=a.items.map(it=>it.opts?it:{q:it.q,tf:it.a});
+  quizEngine(items,box,done);
+}
+function actLabel(a,box,done){
+  const svg=`<svg viewBox="${DIAG_VIEW[a.diagram]}" role="img" aria-label="Dibujo">${DIAGRAMS[a.diagram]}${a.points.map((p,i)=>`<g class="dot" id="d${i}"><circle cx="${p[0]}" cy="${p[1]}" r="11"/><text x="${p[0]}" y="${p[1]}">${i+1}</text></g>`).join('')}</svg>`;
+  const top=h('div',{class:'diagram',html:svg});
+  const items=a.points.map((p,i)=>({q:`¿Cómo se llama el número ${i+1}?`,opts:a.opts,a:a.opts.indexOf(p[2])}));
+  quizEngine(items,box,done,{top,two:true,
+    onShow(k){top.querySelectorAll('.dot').forEach((d,i)=>d.classList.toggle('cur',i===k))},
+    onRight(k){const d=top.querySelector('#d'+k);d.classList.remove('cur');d.classList.add('done')}});
+}
+function actPulse(a,box,done){
+  const heart=h('div',{class:'heart',html:icon('circ',1.6).replace('fill="none"','fill="currentColor"')});
+  const clock=h('div',{class:'clock'},'1:00');
+  const txt=h('p',{class:'qtext',style:'text-align:center'},'Pon dos dedos en tu muñeca, como en el libro. Cuenta los latidos durante 1 minuto. ¡Pide ayuda a papá!');
+  const res=h('p',{class:'hint',style:'text-align:center;margin:0'},'');
+  let t=null;
+  const go=h('button',{class:'next',style:'margin:0',onclick(){
+    if(t)return;let s=60;heart.classList.add('beat');go.textContent='Contando…';
+    t=setInterval(()=>{s--;clock.textContent=`0:${String(s).padStart(2,'0')}`;
+      if(s<=0){clearInterval(t);t=null;heart.classList.remove('beat');tone([880,880,880],.2);clock.textContent='¡Tiempo!';
+        go.textContent='Otra vez';res.textContent='Ahora salta 20 veces y vuelve a contar. ¿Late más rápido o más despacio? (¡Más rápido!)';done()}},1000)}},'Empezar');
+  const skip=h('button',{class:'back',onclick(){if(t){clearInterval(t);t=null}heart.classList.remove('beat');done()}},'Saltar');
+  box.append(h('div',{class:'heartwrap'},heart,clock,txt,h('div',{style:'display:flex;gap:10px;align-items:center'},go,skip),res));
+}
+
+/* ---------- confeti ---------- */
+function confetti(){
+  if(matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+  const c=document.getElementById('fx'),x=c.getContext('2d');c.width=innerWidth;c.height=innerHeight;
+  const cols=['#ff5c8a','#3d8bff','#38c172','#ffb020','#9b6bff','#ffd23f'];
+  const ps=Array.from({length:140},()=>({x:c.width/2,y:c.height*.35,vx:(Math.random()-.5)*14,vy:Math.random()*-14-4,r:Math.random()*6+4,c:cols[Math.random()*6|0],a:Math.random()*6}));
+  let f=0;(function tick(){x.clearRect(0,0,c.width,c.height);ps.forEach(p=>{p.vy+=.35;p.x+=p.vx;p.y+=p.vy;p.a+=.2;x.save();x.translate(p.x,p.y);x.rotate(p.a);x.fillStyle=p.c;x.fillRect(-p.r/2,-p.r/4,p.r,p.r/2);x.restore()});
+    if(++f<150)requestAnimationFrame(tick);else x.clearRect(0,0,c.width,c.height)})();
+}
+
+home();
+</script>
+</body>
+</html>
