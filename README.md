@@ -5,3 +5,4 @@ Juegos de repaso para 2.º de Primaria. Funcionan en móvil, tablet y ordenador,
 - `index.html`: menú de inicio para elegir asignatura.
 - `medio.html`: Conocimiento del Medio, Tema 1 (el cuerpo humano).
 - `lengua.html`: Lengua (abecedario, orden alfabético, letra-sílaba-palabra-oración, sílabas, sinónimos y antónimos).
+- `matematicas.html`: Matemáticas, numeración del 0 al 99 (tabla, escritura, decenas y unidades, mayor/menor/igual, ordenar, anterior y posterior, recta numérica y series). Los números cambian en cada partida.

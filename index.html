@@ -14,16 +14,16 @@
 /* Layout: portada de cuaderno — un saludo y una tarjeta grande por asignatura */
 :root{
   --bg:#f3f6ee; --card:#ffffff; --ink:#1f2b24; --muted:#5a6a60; --line:#d8dfd0; --accent:#5f8a1f;
-  --medio:#d23b3b; --lengua:#2c6fd1; --soon:#9aa69e;
+  --medio:#d23b3b; --lengua:#2c6fd1; --mates:#e07a12;
   --f-display:"Baloo 2","Trebuchet MS",system-ui,sans-serif;
   --f-body:"Nunito","Segoe UI",system-ui,sans-serif;
 }
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
   --bg:#121815; --card:#1c2420; --ink:#e6efe8; --muted:#9db0a4; --line:#2e3a33; --accent:#8cbf45;
-  --medio:#ff6b6b; --lengua:#5d9bf2; --soon:#5d6b63; color-scheme:dark}}
+  --medio:#ff6b6b; --lengua:#5d9bf2; --mates:#ffa24a; color-scheme:dark}}
 :root[data-theme="dark"]{
   --bg:#121815; --card:#1c2420; --ink:#e6efe8; --muted:#9db0a4; --line:#2e3a33; --accent:#8cbf45;
-  --medio:#ff6b6b; --lengua:#5d9bf2; --soon:#5d6b63; color-scheme:dark}
+  --medio:#ff6b6b; --lengua:#5d9bf2; --mates:#ffa24a; color-scheme:dark}
 *{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%}
 body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:18px;line-height:1.4;
@@ -47,7 +47,6 @@ h1 span{color:var(--accent)}
 .stars{display:flex;align-items:center;gap:6px;font-weight:800;color:var(--muted);font-variant-numeric:tabular-nums}
 @media (min-width:640px){.stars{justify-content:center}}
 .stars svg{width:22px;height:22px}
-.subj.soon{border-style:dashed;box-shadow:none;opacity:.75;pointer-events:none}
 @media (prefers-reduced-motion: reduce){*{transition:none!important}}
 </style>
 </head>
@@ -66,10 +65,10 @@ h1 span{color:var(--accent)}
       <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 19l4-13 4 13M4.6 14.5h4.8"/><path d="M14 6v13h3.6a3.2 3.2 0 0 0 0-6.5H14m0 0h3a3.2 3.2 0 0 0 0-6.5h-3"/></svg></span>
       <span class="tx"><span class="kind">Lengua</span><span class="name">La aventura de las letras</span><span class="stars" data-key="nael-lengua" data-max="24"></span></span>
     </a>
-    <div class="subj soon" style="--c:var(--soon)" aria-disabled="true">
-      <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></span>
-      <span class="tx"><span class="kind">Próximamente</span><span class="name">Otro juego nuevo</span></span>
-    </div>
+    <a class="subj" href="matematicas.html" style="--c:var(--mates)">
+      <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M7 3.5v7M3.5 7h7M14 7h7M4.5 14.5l5 5M9.5 14.5l-5 5M14 17h7"/><circle cx="17.5" cy="13.8" r=".6" fill="currentColor"/><circle cx="17.5" cy="20.2" r=".6" fill="currentColor"/></svg></span>
+      <span class="tx"><span class="kind">Matemáticas</span><span class="name">La aventura de los números</span><span class="stars" data-key="nael-mates" data-max="24"></span></span>
+    </a>
   </nav>
 </main>
 <script>
