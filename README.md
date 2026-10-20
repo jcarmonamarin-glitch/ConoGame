@@ -1,5 +1,7 @@
-# La aventura del cuerpo
+# Juegos de Nael
 
-Juego de repaso del Tema 1 de Conocimiento del Medio (2.º de Primaria): el cuerpo humano, los aparatos respiratorio, digestivo, circulatorio, excretor y locomotor, y los sentidos.
+Juegos de repaso para 2.º de Primaria. Funcionan en móvil, tablet y ordenador, sin dependencias.
 
-Es una sola página (`index.html`) sin dependencias. Funciona en móvil, tablet y ordenador.
+- `index.html`: menú de inicio para elegir asignatura.
+- `medio.html`: Conocimiento del Medio, Tema 1 (el cuerpo humano).
+- `lengua.html`: Lengua (abecedario, orden alfabético, letra-sílaba-palabra-oración, sílabas, sinónimos y antónimos).
