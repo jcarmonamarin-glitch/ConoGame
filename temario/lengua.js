@@ -100,16 +100,68 @@ const MISSIONS=[
 ]}
 ];
 
-const FINAL={id:'final',name:'Examen final',sub:'Un poco de todo',color:'var(--c-final)',build(){
-  const quiz=[],builds=[];
-  MISSIONS.forEach(m=>m.acts.forEach(a=>{if(a.type==='quiz')quiz.push(...a.items);if(a.type==='build')builds.push(...a.items)}));
-  const q=shuffle(quiz);
+// Examen final: se genera al azar cada vez con palabras que NO salen en las misiones,
+// para que Nael no se lo sepa de memoria.
+const ABC='ABCDEFGHIJKLMNÑOPQRSTUVWXYZ'.split('');
+const VOC='AEIOU'.split(''),CONS=ABC.filter(l=>!VOC.includes(l));
+const pick=(a,n)=>shuffle(a).slice(0,n),one=a=>a[Math.random()*a.length|0];
+const BANK={
+ orden:['ardilla','barco','cebra','delfín','erizo','fresa','globo','huevo','isla','jirafa','kiwi','león','mono','nariz','ojo','pato','queso','reloj','sandía','tigre','uva','violín','yogur','zorro'],
+ quees:[['m',0],['t',0],['d',0],['pa',1],['lo',1],['me',1],['su',1],['flor',2],['ventana',2],['conejo',2],['Ana lee un cuento.',3],['Hace mucho calor.',3],['El sol brilla.',3]],
+ lspo:[['pato','pa · to','El pato nada en el lago.'],['luna','lu · na','La luna sale de noche.'],['helado','he · la · do','Me como un helado.'],['barco','bar · co','El barco navega por el mar.'],['conejo','co · ne · jo','El conejo come zanahorias.'],['camisa','ca · mi · sa','Mi camisa es azul.'],['regalo','re · ga · lo','Mi abuela me trae un regalo.']],
+ letras:[['🍓','fresa'],['🦁','león'],['🌙','luna'],['🦆','pato'],['🎈','globo'],['🧀','queso'],['🦊','zorro'],['🐢','tortuga'],['🍇','uva'],['🍎','manzana']],
+ silabas:[['🐘',['e','le','fan','te']],['🍫',['cho','co','la','te']],['🚲',['bi','ci','cle','ta']],['🦒',['ji','ra','fa']],['🐊',['co','co','dri','lo']],['🍦',['he','la','do']],['🐰',['co','ne','jo']],['🥒',['pe','pi','no']],['🍬',['ca','ra','me','lo']],['🪁',['co','me','ta']],['🧦',['cal','ce','tín']]],
+ s1:['flor','sal','red','voz','gol','mil','tos','col','mes'],
+ s2:['silla','lápiz','nariz','ropa','taza','pato','vaso','dedo','lobo','cama'],
+ s3:['camisa','conejo','pepino','paloma','gallina','maleta','pijama','helado'],
+ s4:['elefante','chocolate','bicicleta','caramelo','cocodrilo','escalera','lavadora','patinete'],
+ tonica:[['café',['ca','fé'],1],['lápiz',['lá','piz'],0],['pájaro',['pá','ja','ro'],0],['balón',['ba','lón'],1],['ventana',['ven','ta','na'],1],['sartén',['sar','tén'],1],['plátano',['plá','ta','no'],0],['cereza',['ce','re','za'],1],['reloj',['re','loj'],1],['corazón',['co','ra','zón'],2],['jabón',['ja','bón'],1],['martillo',['mar','ti','llo'],1],['teléfono',['te','lé','fo','no'],1],['sábado',['sá','ba','do'],0]],
+ sino:[['rápido','veloz'],['bonito','lindo'],['cara','rostro'],['pequeño','chico'],['enfadado','enojado'],['alumno','estudiante'],['delgado','flaco'],['hablar','charlar'],['tirar','lanzar'],['sitio','lugar'],['contestar','responder'],['cansado','agotado'],['gritar','chillar']],
+ anto:[['limpio','sucio'],['lleno','vacío'],['mojado','seco'],['nuevo','viejo'],['duro','blando'],['entrar','salir'],['ganar','perder'],['mucho','poco'],['fuerte','débil'],['cerca','lejos'],['dentro','fuera'],['primero','último'],['dulce','salado'],['ancho','estrecho'],['rico','pobre']],
+ prefijo:[['obedecer','des'],['conocido','des'],['abrochar','des'],['enchufar','des'],['peinado','des'],['vestir','des'],['colgar','des'],['justo','in'],['visible','in'],['correcto','in'],['completo','in'],['seguro','in'],['capaz','in']]
+};
+const FINAL={id:'final',name:'Examen final',sub:'¡Cada vez es distinto!',color:'var(--c-final)',build(LV){
+  const B=BANK;
+  // 1. Trozo del abecedario con huecos
+  const may=Math.random()<.5,cs=l=>may?l:l.toLowerCase();
+  const st=Math.random()*(ABC.length-9)|0,seg=ABC.slice(st,st+9),gp=pick([1,2,3,4,5,6,7,8],3);
+  const fillLine=seg.map((l,k)=>gp.includes(k)?`[${cs(l)}]`:cs(l)).join(' ');
+  const extra=pick(ABC.filter(l=>!seg.includes(l)),2).map(cs);
+  // 2. Pregunta rápida
+  const qs=[];
+  let i;do{i=2+(Math.random()*23|0)}while(ABC[i]==='N'||ABC[i]==='B');
+  qs.push({q:`¿Qué letra va después de la ${ABC[i]}?`,opts:[ABC[i+1],ABC[i-1],ABC[i+2]],a:0});
+  let k;do{k=2+(Math.random()*23|0)}while(k===i||ABC[k]==='Z');
+  qs.push({q:`¿Qué letra va antes de la ${ABC[k]}?`,opts:[ABC[k-1],ABC[k+1],ABC[k-2]],a:0});
+  qs.push(Math.random()<.5?{q:'¿Cuál es una vocal?',opts:[one(VOC),...pick(CONS,2)],a:0}:{q:'¿Cuál es una consonante?',opts:[one(CONS),...pick(VOC,2)],a:0});
+  pick(B.quees,2).forEach(([w,a])=>qs.push({q:w,opts:OPC,a,keep:true}));
+  // 3. Orden alfabético (primeras letras distintas)
+  const ord=pick(B.orden,LV===3?5:4).sort((x,y)=>ABC.indexOf(x[0].toUpperCase().normalize('NFD')[0])-ABC.indexOf(y[0].toUpperCase().normalize('NFD')[0]));
+  // 4. Letra, sílaba, palabra, oración
+  const L=one(B.lspo);
+  // 5. Formar palabras
+  const bl=pick(B.letras,2).map(([e,w])=>({e,p:sp(w)})),bs=pick(B.silabas,2).map(([e,p])=>({e,p}));
+  // 6. Sílabas
+  const sil=[[B.s1,'1 sílaba'],[B.s2,'2 sílabas'],[B.s3,'3 sílabas'],[B.s4,'4 sílabas']].flatMap(([b,n])=>pick(b,2).map(w=>[w,n]));
+  const ton=pick(B.tonica,4).map(([q,opts,a])=>({q,opts,a,keep:true,row:true}));
+  // 7. Sinónimos y antónimos
+  const sino=shuffle(B.sino),anto=shuffle(B.anto);
+  const others=w=>anto.flatMap(x=>x).filter(x=>!w.includes(x));
+  const contr=anto.slice(4,6).map(pr=>{const r=Math.random()<.5,[w,c]=r?pr:[pr[1],pr[0]];return {q:`Lo contrario de «${w}»`,opts:[c,...pick(others(pr),2)],a:0}});
+  const pre=pick(B.prefijo,3).map(([w,p])=>({q:`Lo contrario de «${w}»`,opts:[p+w,(p==='des'?'in':'des')+w],a:0}));
+  const sa=[...sino.slice(4,7).map(([x,y])=>[`${x} – ${y}`,'Sinónimos']),...anto.slice(6,9).map(([x,y])=>[`${x} – ${y}`,'Antónimos'])];
   return [
-   {type:'match',title:'Une cada palabra con lo que es',pairs:[['Sinónimos','Significan lo mismo'],['Antónimos','Significan lo contrario'],['Vocales','a, e, i, o, u'],['Sílaba','Un golpe de voz']]},
-   {type:'quiz',title:'Pregunta rápida',items:q.slice(0,6)},
-   {type:'build',title:'Forma la palabra',items:shuffle(builds).slice(0,3)},
-   {type:'order',title:'Orden alfabético',items:shuffle([['dado','luna','sapo'],['abeja','gato','oso','vaca'],['mano','pie','rodilla']])[0]},
-   {type:'quiz',title:'Última ronda',items:q.slice(6,11)}
+   {type:'fill',small:true,title:'Completa el abecedario',hint:may?'En mayúscula.':'En minúscula.',lines:[fillLine],extra},
+   {type:'quiz',title:'Pregunta rápida',items:qs},
+   {type:'order',title:'Ordena por orden alfabético',hint:'Fíjate en la primera letra de cada palabra.',items:ord},
+   {type:'match',title:'Une como corresponda',pairs:[[sp(L[0]).join(' '),'Letras'],[L[1],'Sílabas'],[L[0],'Palabra'],[L[2],'Oración']]},
+   {type:'build',title:'Forma la palabra',hint:'Toca las letras o las sílabas en orden.',items:[...bl,...bs]},
+   {type:'sort',title:'Clasifica por sílabas',hint:'Da una palmada por cada sílaba.',buckets:['1 sílaba','2 sílabas','3 sílabas','4 sílabas'],items:sil},
+   {type:'quiz',title:'¿Qué sílaba suena más fuerte?',hint:'Di la palabra en voz alta, como si llamaras a alguien.',items:ton},
+   {type:'match',title:'Une los sinónimos',hint:'Significan lo mismo.',pairs:sino.slice(0,4)},
+   {type:'match',title:'Une los antónimos',hint:'Significan lo contrario.',pairs:anto.slice(0,4)},
+   {type:'quiz',title:'Lo contrario',hint:'Fíjate: ordenada → desordenada, tranquilo → intranquilo.',items:shuffle([...contr,...pre])},
+   {type:'sort',title:'¿Sinónimos o antónimos?',buckets:['Sinónimos','Antónimos'],items:sa}
   ];
 }};
 
