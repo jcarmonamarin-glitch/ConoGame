@@ -36,6 +36,26 @@ function lineSvg(a,b,step,labels,arrow){const n=(b-a)/step,X=v=>24+(v-a)/step*(2
   for(let v=a;v<=b;v+=step){const big=labels.includes(v);s+=`<line x1="${X(v)}" x2="${X(v)}" y1="${big?44:47}" y2="${big?64:61}" style="stroke:var(--ink)" stroke-width="${big?3:2}"/>`;if(big)s+=`<text x="${X(v)}" y="86" text-anchor="middle" style="fill:var(--ink);font:800 17px var(--f-body)">${v}</text>`}
   const A=X(arrow);s+=`<polygon points="${A-11},10 ${A+11},10 ${A},38" style="fill:var(--c-final)"/>`;
   return `<svg viewBox="0 0 340 96" style="width:100%;max-width:440px" role="img" aria-label="Recta numérica">${s}</svg>`}
+/* Saltos con flechas: burbujas con el número y una flecha curva encima de cada salto (+2, -5…).
+   gaps: posiciones con "?" (la primera es la que se pregunta); done: posiciones ya acertadas (en verde). */
+function hopSvg(vals,stp,gaps,done,wide){const n=vals.length,R=25,D=wide?170:74,x0=32,cy=86,W=x0*2+(n-1)*D,X=i=>x0+i*D;
+  const col=stp>0?'var(--p3)':'var(--p1)',lab=(stp>0?'+':'−')+Math.abs(stp);let s='';
+  for(let i=0;i<n-1;i++){const sx=X(i)+R*.55,ex=X(i+1)-R*.55,ey=cy-R*.84,mx=(X(i)+X(i+1))/2,ctl=wide?cy-R-62:cy-R-46;
+    s+=`<path d="M${sx} ${ey} Q${mx} ${ctl} ${ex} ${ey}" fill="none" style="stroke:${col}" stroke-width="3" stroke-linecap="round"/>`;
+    const dx=ex-mx,dy=ey-ctl,L=Math.hypot(dx,dy),ux=dx/L,uy=dy/L,b=11,w=6.5;
+    s+=`<polygon points="${ex},${ey} ${ex-ux*b-uy*w},${ey-uy*b+ux*w} ${ex-ux*b+uy*w},${ey-uy*b-ux*w}" style="fill:${col}"/>`;
+    s+=`<text x="${mx}" y="${(ey+ctl)/2-8}" text-anchor="middle" style="fill:${col};font:800 ${wide?24:19}px var(--f-display)">${lab}</text>`}
+  vals.forEach((v,i)=>{const g=gaps.includes(i),ok=done&&done.includes(i),cur=g&&gaps[0]===i;
+    s+=`<circle cx="${X(i)}" cy="${cy}" r="${R}" style="fill:${cur?'var(--gap)':ok?'var(--ok-soft)':'var(--card)'};stroke:${cur||g?'var(--gap-line)':ok?'var(--ok)':'var(--ink)'}" stroke-width="3"${g?' stroke-dasharray="6 4"':''}/>`;
+    s+=`<text x="${X(i)}" y="${cy+8}" text-anchor="middle" style="fill:${g?'var(--gap-line)':ok?'var(--ok)':'var(--ink)'};font:800 22px var(--f-display)">${g?'?':v}</text>`});
+  return `<svg viewBox="0 0 ${W} ${cy+R+6}" style="width:100%;max-width:${Math.round(W*1.3)}px" role="img" aria-label="Saltos de ${Math.abs(stp)} en ${Math.abs(stp)}">${s}</svg>`}
+/* Descomposición como en el libro: 26 → 20 + 6. hide: 'n' (el número), 't' (las decenas), 'u' (las unidades). */
+function splitSvg(n,hide){const t=Math.floor(n/10)*10,u=n%10;
+  const box=(x,y,txt,c,hid)=>`<rect x="${x}" y="${y}" width="84" height="52" rx="12" style="fill:${hid?'var(--gap)':'var(--card)'};stroke:${hid?'var(--gap-line)':c}" stroke-width="3"${hid?' stroke-dasharray="6 4"':''}/><text x="${x+42}" y="${y+37}" text-anchor="middle" style="fill:${hid?'var(--gap-line)':c};font:800 32px var(--f-display)">${hid?'?':txt}</text>`;
+  const arr=(x1,y1,x2,y2)=>{const L=Math.hypot(x2-x1,y2-y1),ux=(x2-x1)/L,uy=(y2-y1)/L;return `<line x1="${x1}" y1="${y1}" x2="${x2-ux*8}" y2="${y2-uy*8}" style="stroke:var(--ink)" stroke-width="3" stroke-linecap="round"/><polygon points="${x2},${y2} ${x2-ux*12-uy*7},${y2-uy*12+ux*7} ${x2-ux*12+uy*7},${y2-uy*12-ux*7}" style="fill:var(--ink)"/>`};
+  return `<svg viewBox="0 0 300 184" style="width:100%;max-width:340px" role="img" aria-label="${n} es ${t} más ${u}">`+box(108,4,n,'var(--ink)',hide==='n')+arr(132,58,90,100)+arr(168,58,210,100)+
+    box(38,102,t,'var(--p2)',hide==='t')+`<text x="150" y="140" text-anchor="middle" style="fill:var(--ink);font:800 34px var(--f-display)">+</text>`+box(178,102,u,'var(--p4)',hide==='u')+
+    `<text x="80" y="178" text-anchor="middle" style="fill:var(--muted);font:800 14px var(--f-body)">decenas</text><text x="220" y="178" text-anchor="middle" style="fill:var(--muted);font:800 14px var(--f-body)">unidades</text></svg>`}
 const CMP=['<','=','>'];
 
 /* ---------- misiones ---------- */
@@ -49,17 +69,22 @@ const MISSIONS=[
   {type:'match',title:'Une cada número con su nombre',pairs:ns.map(n=>[String(n),numW(n)])},
   {type:'quiz',title:'¿Qué número es?',hint:'Toca el nombre para oírlo.',items:qs.map(n=>({q:cap(numW(n)),opts:near(n,[swap(n),n+10,n-10,n+1]).map(String),a:0,row:true}))},
   {type:'quiz',title:'¿Cómo se escribe con letras?',items:ws.map(n=>({q:String(n),opts:near(n,[swap(n),n+10,n-10,n+1]).map(numW),a:0}))}]}},
-{id:'ud',name:'Decenas y unidades',sub:'D y U',color:'var(--c-loco)',build(L){
-  const top=TOP(L),bl=pickN(3,12,Math.min(96,top),two),qn=pickN(4,21,Math.min(98,top),two),mn=pickN(4,12,Math.min(98,top),two);
-  const items=[];qn.forEach((n,i)=>{const d=Math.floor(n/10),u=n%10;
-    if(i%4===0)items.push({q:`¿Cuántas decenas tiene el ${n}?`,opts:near(d,[u,(d+1)%10,(d+2)%10]).map(String),a:0,row:true});
-    if(i%4===1)items.push({q:`¿Cuántas unidades tiene el ${n}?`,opts:near(u,[d,(u+1)%10,(u+2)%10]).map(String),a:0,row:true});
+{id:'ud',name:'Decenas y unidades',sub:'26 = 20 + 6',color:'var(--c-loco)',build(L){
+  const top=TOP(L),bl=pickN(3,12,Math.min(96,top),two),sp=pickN(6,12,Math.min(98,top),two),qn=pickN(4,21,Math.min(98,top),two),mn=pickN(4,12,Math.min(98,top),two);
+  const spl=shuffle(sp.map((n,i)=>{const t=Math.floor(n/10)*10,u=n%10,d=t/10;
+    if(i%3===0)return {pic:splitSvg(n,'t'),q:`${n} = ? + ${u}`,opts:near(t,[d,n,t+10]).map(String),a:0,row:true};
+    if(i%3===1)return {pic:splitSvg(n,'u'),q:`${n} = ${t} + ?`,opts:near(u,[d,u*10,u+1]).map(String),a:0,row:true};
+    return {pic:splitSvg(n,'n'),q:`${t} + ${u} = ?`,opts:near(n,[swap(n),d+u,n+10]).map(String),a:0,row:true}}));
+  const items=[];qn.forEach((n,i)=>{const t=Math.floor(n/10)*10,d=t/10,u=n%10;
+    if(i%4===0)items.push({q:`En el ${n}, ¿cuánto valen las decenas?`,opts:near(t,[d,u,t+10]).map(String),a:0,row:true});
+    if(i%4===1)items.push({q:`En el ${n}, ¿cuánto valen las unidades?`,opts:near(u,[d,t,u*10]).map(String),a:0,row:true});
     if(i%4===2)items.push({q:`${d} decenas y ${u} unidades son…`,opts:[String(n),String(swap(n)),String(d*100+u)],a:0,row:true});
-    if(i%4===3)items.push({q:`¿Cuál tiene ${d} decenas?`,opts:near(n,[swap(n),(d===9?8:d+1)*10+u]).map(String),a:0,row:true});});
+    if(i%4===3)items.push({q:`¿Qué número es ${t} + ${u}?`,opts:near(n,[swap(n),d+u,t]).map(String),a:0,row:true});});
   return [
-  {type:'quiz',title:'¿Qué número es?',hint:'Cada barra azul es una decena (10). Cada cuadradito es una unidad (1).',items:bl.map(n=>({pic:blocksSvg(n),q:'¿Qué número es?',opts:near(n,[swap(n),n+1,n-1]).map(String),a:0,row:true}))},
-  {type:'quiz',title:'Decenas y unidades',hint:'En el 47, el 4 son las decenas y el 7 las unidades.',items},
-  {type:'match',title:'Une cada número',pairs:mn.map(n=>[`${Math.floor(n/10)} D y ${n%10} U`,String(n)])}]}},
+  {type:'quiz',title:'¿Qué número es?',hint:'Cuenta las barras de 10 en 10 (10, 20, 30…) y luego suma los cuadraditos.',items:bl.map(n=>({pic:blocksSvg(n),q:'¿Qué número es?',opts:near(n,[swap(n),n+1,n-1]).map(String),a:0,row:true}))},
+  {type:'quiz',title:'Rompe el número',hint:'El 26 se rompe en 20 + 6: las decenas llevan un 0 detrás.',items:spl},
+  {type:'quiz',title:'Decenas y unidades',hint:'En el 47, el 4 son 4 decenas y valen 40. El 7 son 7 unidades. 47 = 40 + 7.',items},
+  {type:'match',title:'Une cada suma con su número',hint:'40 + 7 es el 47.',pairs:mn.map(n=>[`${Math.floor(n/10)*10} + ${n%10}`,String(n)])}]}},
 {id:'compara',name:'Mayor, menor, igual',sub:'>  <  =',color:'var(--c-resp)',build(L){
   const top=TOP(L),pairs=[];const a1=ri(10,top-1);pairs.push([a1,a1]);
   const b=pickN(1,12,Math.min(98,top),two)[0];pairs.push(Math.random()<.5?[b,swap(b)]:[swap(b),b]);
@@ -84,29 +109,41 @@ const MISSIONS=[
   return [
   {type:'quiz',title:'Anterior y posterior',hint:'El anterior va justo antes. El posterior va justo después.',items:it},
   {type:'fill',small:true,title:'Completa los vecinos',hint:'Pon el anterior y el posterior.',lines:fl.map(n=>`[${n-1}]   ${n}   [${n+1}]`),extra:pickN(2,0,99,v=>!fl.some(n=>Math.abs(v-n)<=1)).map(String)}]}},
-{id:'recta',name:'Recta y series',sub:'De 2 en 2, de 5 en 5, de 10 en 10',color:'var(--c-sent)',build(L){
+{id:'recta',name:'Recta y saltos',sub:'De 2 en 2, de 5 en 5, de 10 en 10',color:'var(--c-sent)',build(L){
+  const top=TOP(L);
   const it=[];for(let i=0;i<4;i++){if(i<3){const a=ri(0,L===1?4:8)*10,mid=L!==3;let v;do{v=a+ri(1,9)}while(mid&&v===a+5);
       it.push({pic:lineSvg(a,a+10,1,mid?[a,a+5,a+10]:[a,a+10],v),q:'¿Qué número señala la flecha?',opts:near(v,[v+1,v-1,v+2]).map(String),a:0,row:true})}
     else{const v=[10,20,30,40,60,70,80,90][ri(0,7)];it.push({pic:lineSvg(0,100,10,[0,50,100],v),q:'¿Qué número señala la flecha?',opts:near(v,[v+10,v-10]).map(String),a:0,row:true})}}
-  const ser=(st,stp,len,gaps,lab)=>{const v=[...Array(len)].map((_,i)=>st+i*stp);return {line:`${lab}:  `+v.map((x,i)=>gaps.includes(i)?`[${x}]`:x).join('  '),ans:gaps.map(i=>v[i])}};
-  const s2=ser(ri(1,L===1?15:30)*2,2,6,[2,4,5],'De 2 en 2'),s5=ser(ri(0,L===1?4:8)*5,5,6,[1,3,5],'De 5 en 5'),s10=ser(ri(0,3)*10+ri(1,9),10,6,[2,3,5],'De 10 en 10');
-  const b10=ser(ri(6,9)*10+ri(0,9),-10,6,[1,3,4],'Hacia atrás de 10 en 10'),b2=ser(ri(25,49)*2,-2,6,[2,3,5],'Hacia atrás de 2 en 2');
-  const ex=a=>pickN(2,0,99,v=>!a.includes(v)).map(String);
+  // Un salto: 24 + 2, 35 - 5, 26 + 10…
+  const hops=shuffle([[2,1],[5,1],[10,1],[2,-1],[5,-1],[10,-1]]).map(([k,sg])=>{
+    const a=k===5?(sg>0?ri(0,(top-5)/5|0)*5:ri(1,top/5|0)*5):(sg>0?ri(1,top-k):ri(k,top)),b=a+sg*k;
+    return {pic:hopSvg([a,b],sg*k,[1],null,true),q:`${a} ${sg>0?'+':'-'} ${k} = ?`,opts:near(b,[b-sg,a-sg*k,k===10?a+sg:b+sg*k]).map(String),a:0,row:true}});
+  // Series con flechas: 5 burbujas, una o dos con "?"
+  const chains=shuffle([[2,1],[5,1],[10,1],[2,-1],[5,-1],[10,-1]]),N=5,ser=[];
+  chains.forEach(([k,sg],ci)=>{let a;
+    if(sg>0)a=k===2?ri(0,(top-8)/2|0)*2+(L>1&&Math.random()<.4?1:0):k===5?ri(0,(top-20)/5|0)*5:ri(0,top-40);
+    else a=k===2?ri(5,top/2|0)*2-(L>1&&Math.random()<.4?1:0):k===5?ri(4,top/5|0)*5:ri(40,top);
+    const v=[...Array(N)].map((_,i)=>a+sg*i*k),two_=L>1&&ci<3;
+    const g=two_?shuffle([1,2,3,4]).slice(0,2).sort((x,y)=>x-y):[ri(1,4)];
+    const lab=`${sg>0?'Sumamos':'Restamos'} ${k}. ¿Qué número va en el hueco azul?`;
+    g.forEach((p,gi)=>ser.push({pic:hopSvg(v,sg*k,g.slice(gi),g.slice(0,gi)),q:lab,opts:near(v[p],[v[p]+1,v[p]-1,v[p]+sg*k*2]).map(String),a:0,row:true}))});
   return [
   {type:'quiz',title:'La recta numérica',hint:'Cuenta las rayitas desde el número que conoces.',items:it},
-  {type:'fill',small:true,title:'Sigue la serie',lines:[s2.line,s5.line,s10.line],extra:ex([...s2.ans,...s5.ans,...s10.ans])},
-  {type:'fill',small:true,title:'Series hacia atrás',lines:[b10.line,b2.line],extra:ex([...b10.ans,...b2.ans])}]}}
+  {type:'quiz',title:'Un saltito',hint:'Mira la flecha: +2 es sumar 2 y −2 es restar 2. Con el 10 solo cambian las decenas: 26 + 10 = 36.',items:hops},
+  {type:'quiz',title:'Sigue los saltos',hint:'Cada flecha suma o resta lo mismo. Salta desde el número de antes.',items:ser.slice(0,L===1?6:9)}]}}
 ];
 
 const by=(id,L)=>MISSIONS.find(m=>m.id===id).build(L);
 const FINAL={id:'final',name:'Examen final',sub:'Un poco de todo',color:'var(--c-final)',build(L){
-  const q=shuffle([...by('compara',L)[0].items.slice(0,3),...by('ud',L)[0].items.slice(0,2),...by('ud',L)[1].items.slice(0,2),...by('vecinos',L)[0].items.slice(0,3),...by('recta',L)[0].items.slice(0,2),...by('escribe',L)[1].items.slice(0,2)]);
+  const ud=by('ud',L),re=by('recta',L);
+  const q=shuffle([...by('compara',L)[0].items.slice(0,3),...ud[0].items.slice(0,2),...ud[1].items.slice(0,2),...ud[2].items.slice(0,2),...by('vecinos',L)[0].items.slice(0,3),...re[0].items.slice(0,2),...by('escribe',L)[1].items.slice(0,2)]);
   return [
    {type:'grid',mode:'fill',title:'Completa la tabla',hint:'Toca el número que va en la casilla que parpadea.',blanks:pickN([0,4,6,9][L],1,99).sort((x,y)=>x-y)},
-   {type:'quiz',title:'Pregunta rápida',items:q.slice(0,7)},
+   {type:'quiz',title:'Pregunta rápida',items:q.slice(0,8)},
    by('ordena',L)[Math.random()<.5?0:1],
-   by('recta',L)[1],
-   {type:'quiz',title:'Última ronda',items:q.slice(7,14)}];
+   {...re[1],title:'Saltitos'},
+   {...re[2],items:re[2].items.slice(0,6)},
+   {type:'quiz',title:'Última ronda',items:q.slice(8,16)}];
 }};
 
 registrar({
