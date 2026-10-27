@@ -19,7 +19,7 @@ body{margin:0}
 :root{
   --bg:#f3f6ee; --card:#ffffff; --ink:#1f2b24; --muted:#5a6a60; --line:#d8dfd0;
   --accent:#5f8a1f; --accent-ink:#ffffff;
-  --ok:#2f9e5b; --ok-soft:#dcf3e4; --bad:#d6453d; --gap:#eef3ff; --gap-line:#7aa0e0;
+  --ok:#2f9e5b; --ok-soft:#dcf3e4; --bad:#d6453d; --bad-soft:#fde4e2; --gap:#eef3ff; --gap-line:#7aa0e0;
   --c-cuerpo:#0f8f8a; --c-resp:#d4537a; --c-dig:#5f8a1f; --c-circ:#d23b3b; --c-exc:#c98a00; --c-sent:#7a4fc4; --c-loco:#2c6fd1; --c-final:#e07a12;
   --p1:#e0457b; --p2:#2c6fd1; --p3:#2f9e5b; --p4:#e07a12; --p5:#7a4fc4; --p6:#0f8f8a;
   --skin:#f4c3a4; --skin-line:#c98b6b;
@@ -31,14 +31,14 @@ body{margin:0}
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
   --bg:#121815; --card:#1c2420; --ink:#e6efe8; --muted:#9db0a4; --line:#2e3a33;
   --accent:#8cbf45; --accent-ink:#10160f;
-  --ok:#4cc77e; --ok-soft:#1d3a29; --bad:#ff6b62; --gap:#1d2740; --gap-line:#6f95d8;
+  --ok:#4cc77e; --ok-soft:#1d3a29; --bad:#ff6b62; --bad-soft:#3d1f1d; --gap:#1d2740; --gap-line:#6f95d8;
   --c-cuerpo:#2cc1b9; --c-resp:#f07aa0; --c-dig:#8cbf45; --c-circ:#ff6b6b; --c-exc:#f2b32e; --c-sent:#a987ee; --c-loco:#5d9bf2; --c-final:#ffa24a;
   --p1:#ff6fa0; --p2:#5d9bf2; --p3:#4cc77e; --p4:#ffa24a; --p5:#a987ee; --p6:#2cc1b9;
   --skin:#d9a283; --skin-line:#a56f52; color-scheme:dark}}
 :root[data-theme="dark"]{
   --bg:#121815; --card:#1c2420; --ink:#e6efe8; --muted:#9db0a4; --line:#2e3a33;
   --accent:#8cbf45; --accent-ink:#10160f;
-  --ok:#4cc77e; --ok-soft:#1d3a29; --bad:#ff6b62; --gap:#1d2740; --gap-line:#6f95d8;
+  --ok:#4cc77e; --ok-soft:#1d3a29; --bad:#ff6b62; --bad-soft:#3d1f1d; --gap:#1d2740; --gap-line:#6f95d8;
   --c-cuerpo:#2cc1b9; --c-resp:#f07aa0; --c-dig:#8cbf45; --c-circ:#ff6b6b; --c-exc:#f2b32e; --c-sent:#a987ee; --c-loco:#5d9bf2; --c-final:#ffa24a;
   --p1:#ff6fa0; --p2:#5d9bf2; --p3:#4cc77e; --p4:#ffa24a; --p5:#a987ee; --p6:#2cc1b9;
   --skin:#d9a283; --skin-line:#a56f52; color-scheme:dark}
@@ -116,6 +116,22 @@ button{touch-action:manipulation;-webkit-user-select:none;user-select:none}
 @media (hover:hover){.opt:hover{border-color:var(--mc)}}
 .opt.ok{border-color:var(--ok);background:var(--ok-soft);box-shadow:0 4px 0 var(--ok)}
 .opt.no{opacity:.35;text-decoration:line-through;box-shadow:none}
+/* Un solo intento: el fallo queda en rojo y la buena se marca en verde */
+.opt.wrong,.opt.wrong:disabled{border-color:var(--bad);background:var(--bad-soft);color:var(--bad);box-shadow:0 4px 0 var(--bad);opacity:1}
+.opt.right{border-color:var(--ok);color:var(--ok);box-shadow:0 4px 0 var(--ok);border-style:dashed}
+.gap.wrong{border-bottom-style:solid;border-color:var(--bad);background:var(--bad-soft);color:var(--bad);animation:none}
+.hc.wrong{background:var(--bad);border-color:var(--bad);color:#fff;animation:none}
+.ocard.wrong{border-color:var(--bad);background:var(--bad-soft)}.ocard.wrong .box{border-color:var(--bad);color:var(--bad)}
+.slot.wrong{background:var(--bad-soft);border-color:var(--bad);color:var(--bad)}
+.chips span.wrong{background:var(--bad-soft);color:var(--bad)}
+.fails{width:100%;display:flex;flex-direction:column;gap:12px;text-align:left;margin-top:6px}
+.fails h3{font-size:22px;text-align:center}
+.fail{border:2px solid var(--line);border-left:6px solid var(--bad);border-radius:var(--r);padding:12px 14px;background:var(--card)}
+.fail .ft{font-size:13px;color:var(--muted);font-weight:800;text-transform:uppercase;letter-spacing:.04em}
+.fail .fq{font-weight:800;margin:4px 0 6px}
+.fail .fpic{margin:6px 0}.fail .fpic svg{max-width:100%;height:auto;max-height:190px;display:block;margin:0 auto}
+.fail .fa{display:flex;gap:8px 16px;flex-wrap:wrap;margin:0;font-weight:800}
+.fail .fb{color:var(--bad)}.fail .fg{color:var(--ok)}
 .shake{animation:shake .4s}
 @keyframes shake{20%,60%{transform:translateX(-7px)}40%,80%{transform:translateX(7px)}}
 .pop{animation:pop .35s}
@@ -281,7 +297,9 @@ function pop(e){e.classList.remove('pop');void e.offsetWidth;e.classList.add('po
 let soundOn=true;try{soundOn=localStorage.getItem('nael-sonido')!=='0'}catch(e){}
 let ac=null;
 function tone(fs,dur=.12,type='triangle'){if(!soundOn)return;try{ac=ac||new (window.AudioContext||window.webkitAudioContext)();let t=ac.currentTime;fs.forEach(f=>{const o=ac.createOscillator(),g=ac.createGain();o.type=type;o.frequency.value=f;g.gain.setValueAtTime(.18,t);g.gain.exponentialRampToValueAtTime(.001,t+dur);o.connect(g).connect(ac.destination);o.start(t);o.stop(t+dur);t+=dur*.9})}catch(e){}}
-let mistakes=0;
+let mistakes=0,fails=[];
+function fail(r){const t=acts&&acts[idx]?acts[idx].title:'',l=fails[fails.length-1];
+  if(r.ok==null&&l&&l.ok==null&&l.t===t&&l.q===r.q){l.bad+=', '+r.bad;return}fails.push({t,...r})}
 const good=()=>tone([660,880]);
 const bad=()=>{mistakes++;tone([220,180],.15,'sine')};
 const canSpeak='speechSynthesis' in window;
@@ -367,7 +385,7 @@ function home(){
 }
 
 let M,acts,idx;
-function start(m){M=m;acts=applyLevel(m.build?m.build(LV):m.acts);idx=0;mistakes=0;render()}
+function start(m){M=m;acts=applyLevel(m.build?m.build(LV):m.acts);idx=0;mistakes=0;fails=[];render()}
 function render(){
   redraw=null;app.className='mission';app.innerHTML='';
   const a=acts[idx];
@@ -407,10 +425,13 @@ function finish(){
   app.innerHTML='';
   const msg=stars===3?'¡Increíble! Casi sin fallos.':stars===2?'¡Muy bien! Si repites, seguro que sacas 3 estrellas.':'¡Bien hecho! Vamos a repetirla para aprenderla mejor.';
   app.append(h('section',{class:'panel end',style:`--mc:${M.color}`},
-    h('h2',{},'¡Misión superada!'),
+    h('h2',{},stars===1?'¡Misión terminada!':'¡Misión superada!'),
     h('div',{class:'big',html:[1,2,3].map(n=>starSvg(n<=stars)).join('')}),
     h('p',{class:'qtext'},msg),
-    h('div',{class:'btns'},h('button',{class:'next',onclick:home},'Volver al mapa'),h('button',{class:'next ghost',onclick(){start(M)}},'Repetir'))));
+    h('div',{class:'btns'},h('button',{class:'next',onclick:home},'Volver al mapa'),h('button',{class:'next ghost',onclick(){start(M)}},'Repetir')),
+    fails.length?h('div',{class:'fails'},h('h3',{},fails.length===1?'Repasa tu fallo':`Repasa tus ${fails.length} fallos`),
+      ...fails.map(f=>h('div',{class:'fail'},f.t?h('div',{class:'ft'},f.t):null,f.pic?h('div',{class:'fpic',html:f.pic}):null,h('p',{class:'fq'},f.q),
+        h('p',{class:'fa'},h('span',{class:'fb'},f.ok==null?`✗ Tocaste: ${f.bad} (no ${f.bad.includes(',')?'iban':'iba'})`:`✗ Pusiste: ${f.bad}`),f.ok==null?null:h('span',{class:'fg'},`✓ Era: ${f.ok}`))))):null));
   confetti();tone([523,659,784,1047,1319],.13);window.scrollTo(0,0);
 }
 
@@ -422,7 +443,8 @@ function actMatch(a,box,done){
   const svg=document.createElementNS(NS,'svg');svg.setAttribute('class','lines');
   wrap.append(svg,L,R);box.append(wrap);
   let sel=null,made=[];
-  const mk=(o,side,col)=>{const b=h('button',{class:'mi'},itemLabel(o.t));b.onclick=()=>pick(o,side,b);col.append(b)};
+  const btn={l:[],r:[]};
+  const mk=(o,side,col)=>{const b=h('button',{class:'mi'},itemLabel(o.t));b.onclick=()=>pick(o,side,b);btn[side][o.i]=b;col.append(b)};
   shuffle(a.pairs.map((p,i)=>({t:p[0],i}))).forEach(o=>mk(o,'l',L));
   let rs;do{rs=shuffle(a.pairs.map((p,i)=>({t:p[1],i})))}while(a.pairs.length>2&&rs.every((o,k)=>o.i===k));
   rs.forEach(o=>mk(o,'r',R));
@@ -432,7 +454,13 @@ function actMatch(a,box,done){
     const s=sel;sel=null;s.b.classList.remove('sel');
     if(s.o.i===o.i){const c=PCOL[made.length%PCOL.length];[b,s.b].forEach(x=>{x.classList.add('ok');x.style.setProperty('--pc',c);pop(x)});
       made.push(side==='l'?[b,s.b,c]:[s.b,b,c]);draw();good();if(made.length===a.pairs.length)done()}
-    else{bad();shake(b);shake(s.b)}
+    else{bad();shake(b);shake(s.b);
+      // Un solo intento: lo primero que tocó se une en rojo con su pareja buena
+      const os=s.side==='l'?'r':'l',pb=btn[os][s.o.i],c='var(--bad)';
+      [s.b,pb].forEach(x=>{x.classList.add('ok');x.style.setProperty('--pc',c)});
+      const L_=s.side==='l'?s.b:pb,R_=s.side==='l'?pb:s.b;
+      fail({q:a.title,bad:s.side==='l'?`${s.o.t} → ${o.t}`:`${o.t} → ${s.o.t}`,ok:`${a.pairs[s.o.i][0]} → ${a.pairs[s.o.i][1]}`});
+      made.push([L_,R_,c]);draw();if(made.length===a.pairs.length)done()}
   }
   function draw(){const r=wrap.getBoundingClientRect();svg.innerHTML='';
     made.forEach(([l,rt,c])=>{const A=l.getBoundingClientRect(),B=rt.getBoundingClientRect();
@@ -450,15 +478,22 @@ function actFill(a,box,done){
     const b=h('button',{class:'opt',onclick(){
       if(w===gaps[cur].dataset.a){const g=gaps[cur];g.textContent=w;g.classList.remove('cur');g.classList.add('filled');pop(g);b.classList.add('used');b.disabled=true;good();
         cur++;if(cur<gaps.length)gaps[cur].classList.add('cur');else{bank.querySelectorAll('.opt:not(.used)').forEach(x=>x.disabled=true);done()}}
-      else{bad();shake(b)}}},w);bank.append(b)});
+      else{const g=gaps[cur],w0=g.dataset.a,line=[...g.parentNode.childNodes].map(n=>n===g?'___':n.textContent).join('');
+        bad();shake(b);g.textContent=w0;g.classList.remove('cur');g.classList.add('wrong');
+        const rb=[...bank.children].find(x=>x.textContent===w0&&!x.classList.contains('used'));if(rb){rb.classList.add('used');rb.disabled=true}
+        fail({q:line,bad:w,ok:w0});cur++;if(cur<gaps.length)gaps[cur].classList.add('cur');else{bank.querySelectorAll('.opt:not(.used)').forEach(x=>x.disabled=true);done()}}}},w);bank.append(b)});
   box.append(h('div',{class:'sents',style:'gap:18px'},sents,h('p',{class:'hint',style:'margin:0'},'Toca lo que va en el hueco que parpadea.'),bank));
 }
 function actOrder(a,box,done){
   const wrap=h('div',{class:'order'});let next=0;
   let it;do{it=shuffle(a.items.map((t,i)=>({t,i})))}while(it.every((o,k)=>o.i===k));
+  const cards=[];
   it.forEach(o=>{const bx=h('span',{class:'box'});const b=h('button',{class:'ocard',onclick(){
-    if(b.classList.contains('ok'))return;
-    if(o.i===next){next++;bx.textContent=next;b.classList.add('ok');pop(b);good();if(next===a.items.length)done()}else{bad();shake(b)}}},bx,h('span',{},o.t));wrap.append(b)});
+    if(b.classList.contains('ok')||b.classList.contains('wrong')||next>=a.items.length)return;
+    if(o.i===next){next++;bx.textContent=next;b.classList.add('ok');pop(b);good()}
+    else{bad();shake(b);const c=cards[next];c.b.classList.add('wrong');c.bx.textContent=next+1;
+      fail({q:a.title,bad:o.t,ok:a.items[next]});next++}
+    if(next===a.items.length)done()}},bx,h('span',{},o.t));cards[o.i]={b,bx};wrap.append(b)});
   box.append(wrap);
 }
 function actSort(a,box,done){
@@ -470,7 +505,10 @@ function actSort(a,box,done){
     if(k>=q.length)return;
     if(q[k][1]===name){chips.append(h('span',{},q[k][0]));pop(b);good();k++;upd();
       if(k<q.length){now.textContent=q[k][0];pop(now)}else{now.textContent='¡Todo colocado!';done()}}
-    else{bad();shake(b)}}},h('b',{},name),chips);bs.append(b)});
+    else{bad();shake(b);const it=q[k],cb=bs.querySelectorAll('.bucket')[a.buckets.indexOf(it[1])];
+      cb.querySelector('.chips').append(h('span',{class:'wrong'},it[0]));
+      fail({q:`¿Dónde va «${it[0]}»?`,bad:name,ok:it[1]});k++;upd();
+      if(k<q.length){now.textContent=q[k][0];pop(now)}else{now.textContent='¡Todo colocado!';done()}}}},h('b',{},name),chips);bs.append(b)});
   box.append(h('div',{class:'sents'},now,count,bs));
 }
 function quizEngine(items,box,done,opts){
@@ -480,10 +518,12 @@ function quizEngine(items,box,done,opts){
     const choices=it.tf!==undefined?['Verdadero','Falso']:it.opts;const ans=it.tf!==undefined?(it.tf?0:1):it.a;
     const order=it.tf!==undefined||it.keep?choices.map((c,i)=>i):shuffle(choices.map((c,i)=>i));
     let locked=false;
-    order.forEach(i=>{const b=h('button',{class:'opt',onclick(){if(locked||b.classList.contains('no'))return;
-      if(i===ans){locked=true;b.classList.add('ok');pop(b);good();if(opts&&opts.onRight)opts.onRight(k);
-        setTimeout(()=>{k++;k<items.length?show():(os.querySelectorAll('.opt').forEach(x=>x.disabled=true),done())},750)}
-      else{bad();shake(b);b.classList.add('no')}}},choices[i]);os.append(b)})}
+    const nx=()=>{k++;k<items.length?show():(os.querySelectorAll('.opt').forEach(x=>x.disabled=true),done())};
+    order.forEach(i=>{const b=h('button',{class:'opt',onclick(){if(locked)return;locked=true;
+      if(i===ans){b.classList.add('ok');pop(b);good();if(opts&&opts.onRight)opts.onRight(k);setTimeout(nx,750)}
+      else{bad();shake(b);b.classList.add('wrong');os.querySelectorAll('.opt').forEach(x=>{if(+x.dataset.i===ans)x.classList.add('right')});
+        fail({q:it.q,pic:it.pic||(opts&&opts.picOf?opts.picOf():''),bad:choices[i],ok:choices[ans]});
+        if(opts&&opts.onWrong)opts.onWrong(k);setTimeout(nx,1800)}}},choices[i]);b.dataset.i=i;os.append(b)})}
   show();
 }
 function actQuiz(a,box,done){
@@ -496,7 +536,9 @@ function actLabel(a,box,done){
   const items=a.points.map((p,i)=>({q:`¿Cómo se llama el número ${i+1}?`,opts:a.opts,a:a.opts.indexOf(p[2])}));
   quizEngine(items,box,done,{top,two:true,
     onShow(k){top.querySelectorAll('.dot').forEach((d,i)=>d.classList.toggle('cur',i===k))},
-    onRight(k){const d=top.querySelector('#d'+k);d.classList.remove('cur');d.classList.add('done')}});
+    picOf:()=>top.innerHTML,
+    onRight(k){const d=top.querySelector('#d'+k);d.classList.remove('cur');d.classList.add('done')},
+    onWrong(k){const d=top.querySelector('#d'+k);d.classList.remove('cur');d.classList.add('done')}});
 }
 function actPulse(a,box,done){
   const heart=h('div',{class:'heart',html:icon('circ',1.6).replace('fill="none"','fill="currentColor"')});
@@ -523,7 +565,10 @@ function actBuild(a,box,done){
       if(b.disabled)return;
       if(o.t===P[n]){slots[n].textContent=o.t;slots[n].classList.add('on');pop(slots[n]);b.classList.add('used');b.disabled=true;n++;good();
         if(n===P.length){if(canSpeak&&soundOn)speak(P.join(''));setTimeout(()=>{k++;k<a.items.length?show():done()},1000)}}
-      else{bad();shake(b)}};tiles.append(b)});
+      else{bad();shake(b);const want=P[n],tb=[...tiles.children].find(x=>!x.disabled&&x.textContent===want);
+        slots[n].textContent=want;slots[n].classList.add('wrong');if(tb){tb.classList.add('used');tb.disabled=true}
+        fail({q:`Forma la palabra ${it.e||''} (${P.join('')}). Hueco ${n+1}:`,bad:o.t,ok:want});n++;
+        if(n===P.length){if(canSpeak&&soundOn)speak(P.join(''));setTimeout(()=>{k++;k<a.items.length?show():done()},1400)}}};tiles.append(b)});
     wrap.append(h('div',{class:'bpic'},it.e),h('div',{class:'slots'},...slots),tiles,h('div',{class:'count'},`${k+1} de ${a.items.length}`));
   }
   show();
@@ -537,7 +582,7 @@ function actGrid(a,box,done){
     cells.forEach((c,n)=>{const ok=a.test(n);if(ok)left++;
       c.onclick=()=>{if(c.classList.contains('on'))return;
         if(ok){c.classList.add('on');pop(c);good();left--;info.textContent=left?`Quedan ${left}`:'¡Todos!';if(!left){cells.forEach(x=>x.disabled=true);done()}}
-        else{bad();shake(c)}}});
+        else if(!c.classList.contains('wrong')){bad();shake(c);c.classList.add('wrong');c.disabled=true;fail({q:a.title,bad:String(n),ok:null})}}});
     info.textContent=`Quedan ${left}`;box.append(h('div',{class:'sents'},g,info));
   }else{
     const B=a.blanks;let cur=0;
@@ -547,7 +592,10 @@ function actGrid(a,box,done){
     shuffle([...B,...extra]).forEach(n=>{const b=h('button',{class:'opt'},String(n));b.onclick=()=>{
       if(n===B[cur]){const c=cells[n];c.textContent=n;c.classList.remove('blank','cur');c.classList.add('on');pop(c);b.classList.add('used');b.disabled=true;good();cur++;
         if(cur<B.length)cells[B[cur]].classList.add('cur');else{bank.querySelectorAll('.opt:not(.used)').forEach(x=>x.disabled=true);done()}}
-      else{bad();shake(b)}};bank.append(b)});
+      else{bad();shake(b);const w=B[cur],c=cells[w];c.textContent=w;c.classList.remove('blank','cur');c.classList.add('wrong');
+        const rb=[...bank.children].find(x=>x.textContent===String(w));if(rb){rb.classList.add('used');rb.disabled=true}
+        fail({q:`En la tabla, el número que va después del ${w-1}`,bad:String(n),ok:String(w)});cur++;
+        if(cur<B.length)cells[B[cur]].classList.add('cur');else{bank.querySelectorAll('.opt:not(.used)').forEach(x=>x.disabled=true);done()}}};bank.append(b)});
     box.append(h('div',{class:'sents'},g,bank));
   }
 }
