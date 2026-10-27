@@ -129,7 +129,7 @@ const MISSIONS=[
     g.forEach((p,gi)=>ser.push({pic:hopSvg(v,sg*k,g.slice(gi),g.slice(0,gi)),q:lab,opts:near(v[p],[v[p]+1,v[p]-1,v[p]+sg*k*2]).map(String),a:0,row:true}))});
   return [
   {type:'quiz',title:'La recta numérica',hint:'Cuenta las rayitas desde el número que conoces.',items:it},
-  {type:'quiz',title:'Un saltito',hint:'Mira la flecha: +2 es sumar 2 y −2 es restar 2. Con el 10 solo cambian las decenas: 26 + 10 = 36.',items:hops},
+  {type:'quiz',title:'Un saltito',hint:'Mira la flecha: +2 es sumar 2 y −2 es restar 2.',items:hops},
   {type:'quiz',title:'Sigue los saltos',hint:'Cada flecha suma o resta lo mismo. Salta desde el número de antes.',items:ser.slice(0,L===1?6:9)}]}}
 ];
 
