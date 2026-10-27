@@ -114,10 +114,10 @@ const MISSIONS=[
   const it=[];for(let i=0;i<4;i++){if(i<3){const a=ri(0,L===1?4:8)*10,mid=L!==3;let v;do{v=a+ri(1,9)}while(mid&&v===a+5);
       it.push({pic:lineSvg(a,a+10,1,mid?[a,a+5,a+10]:[a,a+10],v),q:'¿Qué número señala la flecha?',opts:near(v,[v+1,v-1,v+2]).map(String),a:0,row:true})}
     else{const v=[10,20,30,40,60,70,80,90][ri(0,7)];it.push({pic:lineSvg(0,100,10,[0,50,100],v),q:'¿Qué número señala la flecha?',opts:near(v,[v+10,v-10]).map(String),a:0,row:true})}}
-  // Un salto: 24 + 2, 35 - 5, 26 + 10…
-  const hops=shuffle([[2,1],[5,1],[10,1],[2,-1],[5,-1],[10,-1]]).map(([k,sg])=>{
-    const a=k===5?(sg>0?ri(0,(top-5)/5|0)*5:ri(1,top/5|0)*5):(sg>0?ri(1,top-k):ri(k,top)),b=a+sg*k;
-    return {pic:hopSvg([a,b],sg*k,[1],null,true),q:`${a} ${sg>0?'+':'-'} ${k} = ?`,opts:near(b,[b-sg,a-sg*k,k===10?a+sg:b+sg*k]).map(String),a:0,row:true}});
+  // Saltitos seguidos: 4 bolitas y va saltando de una en una (24 + 2 = ?, 26 + 2 = ?, 28 + 2 = ?)
+  const hops=[];shuffle([[2,1],[5,1],[10,1],[2,-1],[5,-1],[10,-1]]).slice(0,3).forEach(([k,sg])=>{
+    const a=k===5?(sg>0?ri(0,(top-15)/5|0)*5:ri(3,top/5|0)*5):(sg>0?ri(1,top-3*k):ri(3*k,top)),v=[0,1,2,3].map(i=>a+sg*i*k);
+    [1,2,3].forEach(p=>{const b=v[p],f=v[p-1];hops.push({pic:hopSvg(v,sg*k,[1,2,3].filter(x=>x>=p),[1,2,3].filter(x=>x<p)),q:`${f} ${sg>0?'+':'-'} ${k} = ?`,opts:near(b,[b-sg,f-sg*k,k===10?f+sg:b+sg*k]).map(String),a:0,row:true})})});
   // Series con flechas: 5 burbujas, una o dos con "?"
   const chains=shuffle([[2,1],[5,1],[10,1],[2,-1],[5,-1],[10,-1]]),N=5,ser=[];
   chains.forEach(([k,sg],ci)=>{let a;
@@ -129,7 +129,7 @@ const MISSIONS=[
     g.forEach((p,gi)=>ser.push({pic:hopSvg(v,sg*k,g.slice(gi),g.slice(0,gi)),q:lab,opts:near(v[p],[v[p]+1,v[p]-1,v[p]+sg*k*2]).map(String),a:0,row:true}))});
   return [
   {type:'quiz',title:'La recta numérica',hint:'Cuenta las rayitas desde el número que conoces.',items:it},
-  {type:'quiz',title:'Un saltito',hint:'Mira la flecha: +2 es sumar 2 y −2 es restar 2.',items:hops},
+  {type:'quiz',title:'Saltitos',hint:'Mira la flecha: +2 es sumar 2 y −2 es restar 2.',items:hops},
   {type:'quiz',title:'Sigue los saltos',hint:'Cada flecha suma o resta lo mismo. Salta desde el número de antes.',items:ser.slice(0,L===1?6:9)}]}}
 ];
 
@@ -141,7 +141,7 @@ const FINAL={id:'final',name:'Examen final',sub:'Un poco de todo',color:'var(--c
    {type:'grid',mode:'fill',title:'Completa la tabla',hint:'Toca el número que va en la casilla que parpadea.',blanks:pickN([0,4,6,9][L],1,99).sort((x,y)=>x-y)},
    {type:'quiz',title:'Pregunta rápida',items:q.slice(0,8)},
    by('ordena',L)[Math.random()<.5?0:1],
-   {...re[1],title:'Saltitos'},
+   {...re[1],title:'Saltitos',items:re[1].items.slice(0,6)},
    {...re[2],items:re[2].items.slice(0,6)},
    {type:'quiz',title:'Última ronda',items:q.slice(8,16)}];
 }};
