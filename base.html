@@ -270,6 +270,15 @@ a.round{text-decoration:none}
 .zoo button:active{transform:translateY(2px);box-shadow:0 1px 0 var(--line)}
 .err{margin:0;color:var(--bad);font-weight:800}
 .toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:60;background:var(--ok);color:#fff;font-family:var(--f-display);font-weight:800;font-size:20px;padding:10px 20px;border-radius:999px;box-shadow:0 6px 20px rgb(0 0 0 / .2);max-width:calc(100% - 32px);text-align:center}
+.emo{font-size:clamp(44px,12vw,64px);line-height:1.15;text-align:center;letter-spacing:.06em}
+.saybtn{display:flex;align-items:center;justify-content:center;gap:10px;align-self:center;border:3px solid var(--mc);color:var(--mc);background:var(--card);border-radius:999px;padding:10px 20px;font-weight:800;font-size:18px}
+.saybtn[hidden]{display:none}.saybtn svg{width:30px;height:30px}
+.bignum{font-family:var(--f-display);font-weight:800;font-size:clamp(56px,16vw,84px);line-height:1;text-align:center;color:var(--mc)}
+.winp{width:100%;box-sizing:border-box;font-family:var(--f-school);font-size:28px;text-align:center;padding:12px 14px;border:3px solid var(--line);border-radius:16px;background:var(--card);color:var(--ink)}
+.winp:focus{outline:none;border-color:var(--mc)}
+.winp.ok{border-color:var(--ok);background:var(--ok-soft)}.winp.wrong{border-color:var(--bad);background:var(--bad-soft);color:var(--bad)}
+.wfb{margin:0;text-align:center;font-weight:800;font-size:22px;min-height:1.3em}.wfb.ok{color:var(--ok)}.wfb.bad{color:var(--bad)}
+.write .next{align-self:center;min-width:12em}
 </style>
 </head>
 <body>
@@ -303,7 +312,11 @@ function fail(r){const t=acts&&acts[idx]?acts[idx].title:'',l=fails[fails.length
 const good=()=>tone([660,880]);
 const bad=()=>{mistakes++;tone([220,180],.15,'sine')};
 const canSpeak='speechSynthesis' in window;
-function speak(t){try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t.replace(/[\u{1F300}-\u{1FAFF}☀-➿️]/gu,''));u.lang='es-ES';u.rate=.9;speechSynthesis.speak(u)}catch(e){}}
+/* speak(texto, idioma): por defecto en español. Inglés: speak('seven','en-GB') o sayT() con el idioma de la asignatura (T.lang). */
+function voiceFor(L){try{const vs=speechSynthesis.getVoices(),n=x=>x.lang.replace('_','-').toLowerCase();return vs.find(v=>n(v)===L.toLowerCase())||vs.find(v=>n(v).startsWith(L.slice(0,2).toLowerCase()))}catch(e){return null}}
+if(canSpeak)try{speechSynthesis.getVoices();speechSynthesis.onvoiceschanged=()=>speechSynthesis.getVoices()}catch(e){}
+function speak(t,lang){try{speechSynthesis.cancel();const L=lang||'es-ES',u=new SpeechSynthesisUtterance(t.replace(/[\u{1F300}-\u{1FAFF}☀-➿️]/gu,''));u.lang=L;const v=voiceFor(L);if(v)u.voice=v;u.rate=L.startsWith('es')?.9:.8;speechSynthesis.speak(u)}catch(e){}}
+const sayT=t=>{if(canSpeak&&soundOn)speak(t,(T&&T.lang)||'es-ES')};
 const PRAISE=['¡Muy bien, Nael!','¡Genial!','¡Eres un crack!','¡Perfecto!','¡Así se hace!','¡Lo sabes todo!'];
 let redraw=null;window.addEventListener('resize',()=>redraw&&redraw());
 
@@ -331,6 +344,7 @@ function applyLevel(list){return list.map(a0=>{const a={...a0};
     if(a.type==='sort'){const cap={},used={};a.buckets.forEach(b=>cap[b]=Math.max(2,Math.ceil(a.items.filter(x=>x[1]===b).length*.6)));
       a.items=shuffle(a.items).filter(([,b])=>(used[b]=(used[b]||0)+1)<=cap[b])}
     if(a.type==='build')a.items=a.items.slice(0,3);
+    if(a.type==='write')a.items=a.items.slice(0,Math.max(2,Math.ceil(a.items.length*.6)));
     if(a.type==='match'&&a.pairs.length>4)a.pairs=a.pairs.slice(0,4);
     if(a.type==='fill')a.extra=[];
   }
@@ -405,7 +419,7 @@ function render(){
     bar.append(h('div',{class:'in'},h('span',{class:'praise'},PRAISE[Math.random()*PRAISE.length|0]),
       h('button',{class:'next',onclick(){idx++;idx<acts.length?render():finish()}},idx<acts.length-1?'Siguiente →':'¡Terminar!')));
     bar.hidden=false};
-  ({match:actMatch,fill:actFill,order:actOrder,sort:actSort,quiz:actQuiz,label:actLabel,pulse:actPulse,build:actBuild,grid:actGrid})[a.type](a,body,done);
+  ({match:actMatch,fill:actFill,order:actOrder,sort:actSort,quiz:actQuiz,label:actLabel,pulse:actPulse,build:actBuild,grid:actGrid,write:actWrite})[a.type](a,body,done);
   window.scrollTo(0,0);
 }
 
@@ -513,8 +527,10 @@ function actSort(a,box,done){
 }
 function quizEngine(items,box,done,opts){
   let k=0;const q=h('p',{class:'qtext',style:'cursor:pointer'});const os=h('div',{class:'opts'}),pic=h('div',{class:'diagram pic',hidden:''});q.onclick=()=>speak(q.textContent);
-  const wrap=h('div',{class:'sents'});if(opts&&opts.top)wrap.append(opts.top);wrap.append(pic,q,os);box.append(wrap);
-  function show(){const it=items[k];if(opts&&opts.onShow)opts.onShow(k);pic.innerHTML=it.pic||'';pic.hidden=!it.pic;q.textContent=it.q;os.innerHTML='';os.className='opts'+(it.tf!==undefined||(opts&&opts.two)?' two':'')+(it.row?' row':'');
+  const sayB=h('button',{class:'saybtn',hidden:'',html:SND_ON+'<span>Escuchar otra vez</span>'});
+  const wrap=h('div',{class:'sents'});if(opts&&opts.top)wrap.append(opts.top);wrap.append(pic,sayB,q,os);box.append(wrap);
+  function show(){const it=items[k];if(opts&&opts.onShow)opts.onShow(k);pic.innerHTML=it.pic||'';pic.hidden=!it.pic;q.textContent=it.q;
+    sayB.hidden=!it.say;if(it.say){sayB.onclick=()=>speak(it.say,T.lang||'en-GB');if(soundOn)sayB.onclick()}os.innerHTML='';os.className='opts'+(it.tf!==undefined||(opts&&opts.two)?' two':'')+(it.row?' row':'');
     const choices=it.tf!==undefined?['Verdadero','Falso']:it.opts;const ans=it.tf!==undefined?(it.tf?0:1):it.a;
     const order=it.tf!==undefined||it.keep?choices.map((c,i)=>i):shuffle(choices.map((c,i)=>i));
     let locked=false;
@@ -522,7 +538,7 @@ function quizEngine(items,box,done,opts){
     order.forEach(i=>{const b=h('button',{class:'opt',onclick(){if(locked)return;locked=true;
       if(i===ans){b.classList.add('ok');pop(b);good();if(opts&&opts.onRight)opts.onRight(k);setTimeout(nx,750)}
       else{bad();shake(b);b.classList.add('wrong');os.querySelectorAll('.opt').forEach(x=>{if(+x.dataset.i===ans)x.classList.add('right')});
-        fail({q:it.q,pic:it.pic||(opts&&opts.picOf?opts.picOf():''),bad:choices[i],ok:choices[ans]});
+        fail({q:it.q+(it.say?` (sonaba: «${it.say}»)`:''),pic:it.pic||(opts&&opts.picOf?opts.picOf():''),bad:choices[i],ok:choices[ans]});
         if(opts&&opts.onWrong)opts.onWrong(k);setTimeout(nx,1800)}}},choices[i]);b.dataset.i=i;os.append(b)})}
   show();
 }
@@ -564,12 +580,35 @@ function actBuild(a,box,done){
     ord.forEach(o=>{const b=h('button',{class:'opt tile'},o.t);b.onclick=()=>{
       if(b.disabled)return;
       if(o.t===P[n]){slots[n].textContent=o.t;slots[n].classList.add('on');pop(slots[n]);b.classList.add('used');b.disabled=true;n++;good();
-        if(n===P.length){if(canSpeak&&soundOn)speak(P.join(''));setTimeout(()=>{k++;k<a.items.length?show():done()},1000)}}
+        if(n===P.length){sayT(P.join(''));setTimeout(()=>{k++;k<a.items.length?show():done()},1000)}}
       else{bad();shake(b);const want=P[n],tb=[...tiles.children].find(x=>!x.disabled&&x.textContent===want);
         slots[n].textContent=want;slots[n].classList.add('wrong');if(tb){tb.classList.add('used');tb.disabled=true}
         fail({q:`Forma la palabra ${it.e||''} (${P.join('')}). Hueco ${n+1}:`,bad:o.t,ok:want});n++;
-        if(n===P.length){if(canSpeak&&soundOn)speak(P.join(''));setTimeout(()=>{k++;k<a.items.length?show():done()},1400)}}};tiles.append(b)});
+        if(n===P.length){sayT(P.join(''));setTimeout(()=>{k++;k<a.items.length?show():done()},1400)}}};tiles.append(b)});
     wrap.append(h('div',{class:'bpic'},it.e),h('div',{class:'slots'},...slots),tiles,h('div',{class:'count'},`${k+1} de ${a.items.length}`));
+  }
+  show();
+}
+
+/* Escribir con el teclado. items:[{q, a:'seven' o ['one dog','a dog'], big?, pic?, say?}]. Admite mayúsculas, espacios y guiones de más.
+   En Fácil sale la primera letra como pista. Un solo intento: si falla, se enseña la buena. */
+const normW=s=>s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9 ]/g,' ').replace(/\s+/g,' ').trim();
+function actWrite(a,box,done){
+  let k=0;const wrap=h('div',{class:'sents write'});box.append(wrap);
+  const nx=()=>{k++;k<a.items.length?show():done()};
+  function show(){const it=a.items[k],ans=[].concat(it.a);wrap.innerHTML='';let locked=false;
+    const inp=h('input',{class:'winp',type:'text',autocomplete:'off',autocapitalize:'off',autocorrect:'off',spellcheck:'false',enterkeyhint:'done','aria-label':'Escribe aquí'});
+    if(LV===1)inp.placeholder=ans[0][0]+'…';
+    const fb=h('p',{class:'wfb'},'\u00a0');
+    const check=()=>{if(locked)return;const v=normW(inp.value);if(!v){shake(inp);inp.focus();return}locked=true;inp.disabled=true;go.disabled=true;
+      if(ans.some(x=>normW(x)===v)){inp.classList.add('ok');pop(inp);good();fb.textContent='✓ '+ans[0];fb.className='wfb ok';sayT(ans[0]);setTimeout(nx,1200)}
+      else{bad();shake(inp);inp.classList.add('wrong');fb.textContent='Se escribe: '+ans[0];fb.className='wfb bad';sayT(ans[0]);
+        fail({q:it.q+(it.big!=null?' '+it.big:'')+(it.say?` (sonaba: «${it.say}»)`:''),pic:it.pic||'',bad:inp.value.trim(),ok:ans[0]});setTimeout(nx,2600)}};
+    const go=h('button',{class:'next',style:'margin:0',onclick:check},'Comprobar');
+    inp.onkeydown=e=>{if(e.key==='Enter')check()};
+    let sb=null;if(it.say){sb=h('button',{class:'saybtn',html:SND_ON+'<span>Escuchar otra vez</span>',onclick(){speak(it.say,T.lang||'en-GB')}});if(soundOn)speak(it.say,T.lang||'en-GB')}
+    wrap.append(...[it.pic?h('div',{class:'diagram pic',html:it.pic}):null,sb,h('p',{class:'qtext'},it.q),it.big!=null?h('div',{class:'bignum'},String(it.big)):null,inp,go,fb,h('div',{class:'count'},`${k+1} de ${a.items.length}`)].filter(Boolean));
+    setTimeout(()=>{try{inp.focus({preventScroll:true})}catch(e){}},60);
   }
   show();
 }

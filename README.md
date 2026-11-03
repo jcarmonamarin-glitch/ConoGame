@@ -1,12 +1,12 @@
 # Juegos de Nael
 
-Juegos de repaso para 2.º de Primaria: Conocimiento del Medio, Lengua y Matemáticas.
+Juegos de repaso para 2.º de Primaria: Conocimiento del Medio, Lengua, Matemáticas e Inglés.
 Funcionan en móvil, tablet y ordenador, sin instalar nada. Se publican con GitHub Pages:
 https://jcarmonamarin-glitch.github.io/ConoGame/
 
 ## Cómo se juega
 
-1. **Asignatura**: en el menú principal se elige Medio, Lengua o Matemáticas.
+1. **Asignatura**: en el menú principal se elige Medio, Lengua, Matemáticas o Inglés.
 2. **Dificultad**: Fácil, Normal o Difícil (se recuerda en cada asignatura).
 3. **Tema**: cada tema es una misión de 2 a 5 juegos. Al terminar da de 1 a 3 estrellas según los fallos.
 
@@ -35,7 +35,8 @@ temario/indice.js    Lista de asignaturas del menú principal
 temario/medio.js     Conocimiento del Medio · Tema 1 (el cuerpo humano)
 temario/lengua.js    Lengua (abecedario, orden alfabético, sílabas, sinónimos, antónimos). El examen final se genera al azar con palabras que no salen en las misiones
 temario/mates.js     Matemáticas (numeración 0-99; las preguntas se generan al azar)
-index.html, medio.html, lengua.html, matematicas.html   Redirecciones a base.html
+temario/ingles.js    Inglés (números 1-20, juguetes, This is / These are). Voz en inglés; preguntas al azar
+index.html, medio.html, lengua.html, matematicas.html, ingles.html   Redirecciones a base.html
 ```
 
 `base.html?a=<id>` abre una asignatura. Sin `?a=` muestra el menú principal.
@@ -64,9 +65,14 @@ Cada misión es `{id, name, sub, color, acts:[...]}` o `{..., build(LV){ return 
 | `build` | `items:[{e:'🐸', p:['r','a','n','a']}]` | Formar palabras con letras o sílabas |
 | `label` | `diagram, opts, points:[[x,y,'Nombre']]` | Nombrar los números de un dibujo |
 | `grid` | `mode:'fill', blanks:[...]` o `mode:'pick', test:n=>...` | Tabla del 0 al 99 |
+| `write` | `items:[{q, a, big?, pic?, say?}]` | Escribir con el teclado. `a` puede ser una lista de respuestas válidas; no importan mayúsculas ni espacios. En Fácil sale la primera letra |
 | `pulse` | — | Cronómetro de 1 minuto para el pulso |
 
 Todas aceptan `title` e `hint` (la pista se oculta en Difícil).
+
+En `quiz`, `say:'seven'` lee esa palabra en voz alta al salir la pregunta, en el idioma de la asignatura (`registrar({lang:'en-GB', ...})`), con un botón para repetirla.
+
+El código de animales guarda la asignatura en 2 bits: caben 4 asignaturas como mucho (Inglés es la cuarta).
 
 ## Probar en local
 
