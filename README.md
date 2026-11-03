@@ -1,4 +1,4 @@
-# Juegos de Nael
+# Juegos de repaso (empezaron siendo los de Nael)
 
 Juegos de repaso para 2.º de Primaria: Conocimiento del Medio, Lengua, Matemáticas e Inglés.
 Funcionan en móvil, tablet y ordenador, sin instalar nada. Se publican con GitHub Pages:
@@ -77,3 +77,8 @@ El código de animales guarda la asignatura en 2 bits: caben 4 asignaturas como 
 ## Probar en local
 
 Abre `base.html` en el navegador (no hace falta servidor).
+
+## Jugadores
+
+Al entrar, el juego pregunta el nombre. Cada nombre guarda sus estrellas aparte en el navegador (`<clave>@<nombre>`).
+Nael usa las claves de siempre, para no perder lo que ya tenía. "Cambiar de jugador" está en el menú principal.

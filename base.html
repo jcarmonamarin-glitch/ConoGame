@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#5f8a1f">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<title>Juegos de Nael</title>
+<title>Juegos de repaso</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&family=Nunito:wght@600;800&family=Playwrite+ES:wght@400&display=swap">
@@ -279,15 +279,16 @@ a.round{text-decoration:none}
 .winp.ok{border-color:var(--ok);background:var(--ok-soft)}.winp.wrong{border-color:var(--bad);background:var(--bad-soft);color:var(--bad)}
 .wfb{margin:0;text-align:center;font-weight:800;font-size:22px;min-height:1.3em}.wfb.ok{color:var(--ok)}.wfb.bad{color:var(--bad)}
 .write .next{align-self:center;min-width:12em}
+.namebox{--mc:var(--c-loco);display:flex;flex-direction:column;gap:14px}.namebox .saverow{flex-wrap:wrap}
 </style>
 </head>
 <body>
 <canvas id="fx"></canvas>
 <main id="app"></main>
-<script src="temario/indice.js?v=202611031647"></script>
+<script src="temario/indice.js?v=202611031730"></script>
 <script>
 /* ======================================================================
-   Motor de los juegos de Nael. Todo lo común vive aquí.
+   Motor de los juegos de repaso (empezaron siendo los de Nael). Todo lo común vive aquí.
    - Sin ?a=  → menú de asignaturas (lista en temario/indice.js)
    - ?a=<id>  → carga temario/<archivo>.js, que llama a registrar({...})
    ====================================================================== */
@@ -317,7 +318,7 @@ function voiceFor(L){try{const vs=speechSynthesis.getVoices(),n=x=>x.lang.replac
 if(canSpeak)try{speechSynthesis.getVoices();speechSynthesis.onvoiceschanged=()=>speechSynthesis.getVoices()}catch(e){}
 function speak(t,lang){try{speechSynthesis.cancel();const L=lang||'es-ES',u=new SpeechSynthesisUtterance(t.replace(/[\u{1F300}-\u{1FAFF}☀-➿️]/gu,''));u.lang=L;const v=voiceFor(L);if(v)u.voice=v;u.rate=L.startsWith('es')?.9:.8;speechSynthesis.speak(u)}catch(e){}}
 const sayT=t=>{if(canSpeak&&soundOn)speak(t,(T&&T.lang)||'es-ES')};
-const PRAISE=['¡Muy bien, Nael!','¡Genial!','¡Eres un crack!','¡Perfecto!','¡Así se hace!','¡Lo sabes todo!'];
+const PRAISE=['¡Muy bien, @!','¡Genial!','¡Eres un crack!','¡Perfecto!','¡Así se hace!','¡Lo sabes todo!'];
 let redraw=null;window.addEventListener('resize',()=>redraw&&redraw());
 
 /* ---------- pantallas ---------- */
@@ -325,17 +326,41 @@ const app=document.getElementById('app');
 const SND_ON='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9v6h4l5 4V5L8 9z"/><path d="M16 9a4 4 0 0 1 0 6M18.5 6.5a8 8 0 0 1 0 11"/></svg>';
 const SND_OFF='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9v6h4l5 4V5L8 9z"/><path d="M16.5 9.5l5 5M21.5 9.5l-5 5"/></svg>';
 const HOME_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h5v-6h4v6h5V10"/></svg>';
+/* ---------- jugadores ----------
+   Cada niño tiene sus estrellas. Las de Nael siguen en las claves de siempre (sin sufijo);
+   cualquier otro nombre guarda en <clave>@<nombre>. */
+let PLAYER='';try{PLAYER=localStorage.getItem('juegos-jugador')||''}catch(e){}
+const pid=n=>n.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9ñ]+/g,'');
+const PK=k=>!PLAYER||pid(PLAYER)==='nael'?k:k+'@'+pid(PLAYER);
+function players(){try{return JSON.parse(localStorage.getItem('juegos-jugadores')||'[]')||[]}catch(e){return []}}
+function setPlayer(n){PLAYER=n;try{localStorage.setItem('juegos-jugador',n);const l=players().filter(x=>pid(x)!==pid(n));l.unshift(n);localStorage.setItem('juegos-jugadores',JSON.stringify(l.slice(0,8)))}catch(e){}}
+function askName(then){
+  redraw=null;app.className='';app.innerHTML='';document.title='Juegos de repaso';
+  const inp=h('input',{class:'winp',type:'text',maxlength:'16',autocomplete:'off',autocapitalize:'words',spellcheck:'false',enterkeyhint:'go','aria-label':'Tu nombre',placeholder:'Escribe tu nombre'});
+  const go=()=>{const n=inp.value.trim().replace(/\s+/g,' ');if(!n){shake(inp);inp.focus();return}const c=n[0].toUpperCase()+n.slice(1);setPlayer(c);good();then()};
+  inp.onkeydown=e=>{if(e.key==='Enter')go()};
+  const known=players();
+  app.append(h('header',{class:'hero'},h('div',{class:'hrow'},h('span',{class:'eyebrow'},'Repaso de 2.º de Primaria'),soundBtn()),
+    h('h1',{html:'¡Hola! <span>¿Cómo te llamas?</span>'})),
+    h('section',{class:'panel namebox'},
+      known.length?h('h2',{class:'sect'},'¿Quién va a jugar?'):null,
+      known.length?h('div',{class:'saverow'},...known.map(n=>h('button',{class:'next ghost',onclick(){setPlayer(n);good();then()}},n))):null,
+      known.length?h('h2',{class:'sect'},'¿Eres nuevo? Escribe tu nombre'):null,
+      inp,h('button',{class:'next',onclick:go},'¡A jugar!')));
+  if(!known.length)setTimeout(()=>{try{inp.focus()}catch(e){}},60);window.scrollTo(0,0);
+}
+
 /* ---------- niveles y progreso ---------- */
 const LVINFO={1:{k:'f',name:'Fácil',sub:'Menos preguntas',c:'var(--p3)'},2:{k:'n',name:'Normal',sub:'Como en clase',c:'var(--p2)'},3:{k:'d',name:'Difícil',sub:'Sin pistas',c:'var(--p1)'}};
 const STAR_TH={1:[3,8],2:[2,6],3:[1,4]}; // fallos máximos para 3 y 2 estrellas
 const lvIcon=n=>`<svg viewBox="0 0 34 20" aria-hidden="true">${[0,1,2].map(i=>`<rect x="${i*12+1}" y="${13-i*6}" width="9" height="${6+i*6}" rx="2" style="fill:${i<n?'currentColor':'var(--line)'}"/>`).join('')}</svg>`;
-function readProg(key){let p={};try{p=JSON.parse(localStorage.getItem(key)||'{}')||{}}catch(e){}
+function readProg(key){let p={};try{p=JSON.parse(localStorage.getItem(PK(key))||'{}')||{}}catch(e){}
   if(!p.f&&!p.n&&!p.d&&Object.keys(p).length)p={n:p}; // progreso antiguo, sin niveles = Normal
   return {f:p.f||{},n:p.n||{},d:p.d||{}}}
 const store={get(){return readProg(T.storeKey)[LVINFO[LV].k]},
-  set(v){const all=readProg(T.storeKey);all[LVINFO[LV].k]=v;try{localStorage.setItem(T.storeKey,JSON.stringify(all))}catch(e){}}};
-function loadLevel(){try{const v=+localStorage.getItem(T.storeKey+'-nivel');if(v>=1&&v<=3)LV=v}catch(e){}}
-function saveLevel(){try{localStorage.setItem(T.storeKey+'-nivel',String(LV))}catch(e){}}
+  set(v){const all=readProg(T.storeKey);all[LVINFO[LV].k]=v;try{localStorage.setItem(PK(T.storeKey),JSON.stringify(all))}catch(e){}}};
+function loadLevel(){try{const v=+localStorage.getItem(PK(T.storeKey+'-nivel'));if(v>=1&&v<=3)LV=v}catch(e){}}
+function saveLevel(){try{localStorage.setItem(PK(T.storeKey+'-nivel'),String(LV))}catch(e){}}
 function applyLevel(list){return list.map(a0=>{const a={...a0};
   if(LV===1){
     if(a.type==='quiz')a.items=a.items.slice(0,Math.max(2,Math.ceil(a.items.length*.6))).map(it=>{
@@ -356,9 +381,10 @@ const BACK_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strok
 function soundBtn(){const b=h('button',{class:'round','aria-label':'Sonido',html:soundOn?SND_ON:SND_OFF});
   b.onclick=()=>{soundOn=!soundOn;try{localStorage.setItem('nael-sonido',soundOn?'1':'0')}catch(e){}b.innerHTML=soundOn?SND_ON:SND_OFF;if(soundOn)good()};return b}
 function hub(){
-  redraw=null;app.className='';app.innerHTML='';document.title='Juegos de Nael';
+  redraw=null;app.className='';app.innerHTML='';document.title='Juegos de repaso';
   app.append(h('header',{class:'hero'},h('div',{class:'hrow'},h('span',{class:'eyebrow'},'Repaso de 2.º de Primaria'),soundBtn()),
-    h('h1',{html:'¡Hola, <span>Nael!</span>'}),h('p',{},'¿Qué quieres repasar hoy?')));
+    h('h1',{},'¡Hola, ',h('span',{},PLAYER+'!')),h('p',{},'¿Qué quieres repasar hoy?'),
+    h('button',{class:'back',style:'align-self:flex-start;margin-top:4px',onclick(){askName(hub)}},`¿No eres ${PLAYER}? Cambiar de jugador`)));
   const list=h('nav',{class:'subjects'});
   SUBJECTS.forEach(s=>{const all=readProg(s.storeKey);const n=['f','n','d'].reduce((t,k)=>t+Object.values(all[k]).reduce((a,b)=>a+b,0),0);
     list.append(h('a',{class:'subj',href:`base.html?a=${s.id}`,style:`--c:${s.color}`},
@@ -394,7 +420,7 @@ function home(){
     h('div',{class:'saverow'},h('button',{class:'next',onclick:showSave},'Ver mi código'),h('button',{class:'next ghost',onclick:showLoad},'Tengo un código'))),
     h('details',{class:'parents'},h('summary',{},'Para papá y mamá'),
     h('p',{},'Fácil: menos preguntas y solo dos opciones para elegir. Normal: como en clase. Difícil: todas las preguntas y sin pistas (en Matemáticas, además, números más grandes y más parecidos). Cada dificultad guarda sus propias estrellas en este dispositivo.'),
-    h('button',{class:'back',style:'margin-top:10px',onclick(){try{localStorage.removeItem(T.storeKey)}catch(e){}home()}},'Borrar las estrellas de esta asignatura')));
+    h('button',{class:'back',style:'margin-top:10px',onclick(){try{localStorage.removeItem(PK(T.storeKey))}catch(e){}home()}},'Borrar las estrellas de esta asignatura')));
   window.scrollTo(0,0);
 }
 
@@ -416,7 +442,7 @@ function render(){
   const bar=h('div',{class:'nextbar',hidden:''});
   app.append(panel,bar);
   const done=()=>{tone([523,659,784,1047],.11);fill.style.width=`${(idx+1)/acts.length*100}%`;bar.innerHTML='';
-    bar.append(h('div',{class:'in'},h('span',{class:'praise'},PRAISE[Math.random()*PRAISE.length|0]),
+    bar.append(h('div',{class:'in'},h('span',{class:'praise'},PRAISE[Math.random()*PRAISE.length|0].replace('@',PLAYER)),
       h('button',{class:'next',onclick(){idx++;idx<acts.length?render():finish()}},idx<acts.length-1?'Siguiente →':'¡Terminar!')));
     bar.hidden=false};
   ({match:actMatch,fill:actFill,order:actOrder,sort:actSort,quiz:actQuiz,label:actLabel,pulse:actPulse,build:actBuild,grid:actGrid,write:actWrite})[a.type](a,body,done);
@@ -706,13 +732,15 @@ function checkPending(){let r=null;try{r=JSON.parse(localStorage.getItem('nael-p
 
 /* ---------- arranque ---------- */
 function registrar(t){T=t;ICONS={...HUB_ICONS,...t.icons};DIAGRAMS=t.diagrams||{};DIAG_VIEW=t.diagView||{};MISSIONS=t.missions;FINAL=t.final;loadLevel();home();checkPending()}
-(function boot(){
+function boot(){
+  if(!PLAYER){askName(boot);return}
   const s=ASIG&&SUBJECTS.find(x=>x.id===ASIG);
   if(!s){hub();return}
-  const el=document.createElement('script');el.src=`temario/${s.file}?v=202611031647`;
+  const el=document.createElement('script');el.src=`temario/${s.file}?v=202611031730`;
   el.onerror=()=>{app.innerHTML='';app.append(h('p',{class:'qtext'},'No se ha podido cargar este temario.'),h('a',{class:'back',href:'base.html'},'Volver al inicio'))};
   document.body.append(el);
-})();
+}
+boot();
 
 </script>
 </body>
