@@ -286,7 +286,7 @@ a.round{text-decoration:none}
 <body>
 <canvas id="fx"></canvas>
 <main id="app"></main>
-<script src="temario/indice.js?v=202611041200"></script>
+<script src="temario/indice.js?v=202611041300"></script>
 <script>
 /* ======================================================================
    Motor de los juegos de repaso (empezaron siendo los de Nael). Todo lo común vive aquí.
@@ -338,7 +338,7 @@ function players(){try{return JSON.parse(localStorage.getItem('juegos-jugadores'
    Si SYNC_URL está vacío, todo funciona solo en el dispositivo, como antes.
    Con SYNC_URL, cada jugador tiene una clave de 4 animales y sus estrellas se guardan también en la hoja.
    El dispositivo sigue siendo lo primero: se juega sin internet y se sincroniza por detrás. */
-const SYNC_URL='';
+const SYNC_URL='https://script.google.com/macros/s/AKfycby1Ke2I3TjEofVJpXCRHJJsqvHz11znhOBO0Kkg3sktXIo6yNcD2J7mSG6ZJcetPuEyvQ/exec';
 const SYNC_TEMAS={}; // nombre visible de cada tema, para la hoja
 const claves=()=>{try{return JSON.parse(localStorage.getItem('juegos-claves')||'{}')||{}}catch(e){return {}}};
 const claveDe=n=>claves()[pid(n)]||'';
@@ -797,7 +797,7 @@ function boot(){
   setTimeout(syncNow,300);
   const s=ASIG&&SUBJECTS.find(x=>x.id===ASIG);
   if(!s){hub();return}
-  const el=document.createElement('script');el.src=`temario/${s.file}?v=202611041200`;
+  const el=document.createElement('script');el.src=`temario/${s.file}?v=202611041300`;
   el.onerror=()=>{app.innerHTML='';app.append(h('p',{class:'qtext'},'No se ha podido cargar este temario.'),h('a',{class:'back',href:'base.html'},'Volver al inicio'))};
   document.body.append(el);
 }
