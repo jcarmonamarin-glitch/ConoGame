@@ -279,13 +279,14 @@ a.round{text-decoration:none}
 .winp.ok{border-color:var(--ok);background:var(--ok-soft)}.winp.wrong{border-color:var(--bad);background:var(--bad-soft);color:var(--bad)}
 .wfb{margin:0;text-align:center;font-weight:800;font-size:22px;min-height:1.3em}.wfb.ok{color:var(--ok)}.wfb.bad{color:var(--bad)}
 .write .next{align-self:center;min-width:12em}
+.codeslots{display:flex;gap:8px;justify-content:center}.codeslots span{width:56px;height:56px;border:3px dashed var(--line);border-radius:14px;display:grid;place-items:center;font-size:34px}.codeslots span.cur{border-color:var(--mc)}
 .namebox{--mc:var(--c-loco);display:flex;flex-direction:column;gap:14px}.namebox .saverow{flex-wrap:wrap}
 </style>
 </head>
 <body>
 <canvas id="fx"></canvas>
 <main id="app"></main>
-<script src="temario/indice.js?v=202611031730"></script>
+<script src="temario/indice.js?v=202611041200"></script>
 <script>
 /* ======================================================================
    Motor de los juegos de repaso (empezaron siendo los de Nael). Todo lo común vive aquí.
@@ -333,18 +334,75 @@ let PLAYER='';try{PLAYER=localStorage.getItem('juegos-jugador')||''}catch(e){}
 const pid=n=>n.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9ñ]+/g,'');
 const PK=k=>!PLAYER||pid(PLAYER)==='nael'?k:k+'@'+pid(PLAYER);
 function players(){try{return JSON.parse(localStorage.getItem('juegos-jugadores')||'[]')||[]}catch(e){return []}}
+/* ---------- base de datos (Google Sheets) ----------
+   Si SYNC_URL está vacío, todo funciona solo en el dispositivo, como antes.
+   Con SYNC_URL, cada jugador tiene una clave de 4 animales y sus estrellas se guardan también en la hoja.
+   El dispositivo sigue siendo lo primero: se juega sin internet y se sincroniza por detrás. */
+const SYNC_URL='';
+const SYNC_TEMAS={}; // nombre visible de cada tema, para la hoja
+const claves=()=>{try{return JSON.parse(localStorage.getItem('juegos-claves')||'{}')||{}}catch(e){return {}}};
+const claveDe=n=>claves()[pid(n)]||'';
+function setClave(n,c){try{const m=claves();if(c)m[pid(n)]=c;else delete m[pid(n)];localStorage.setItem('juegos-claves',JSON.stringify(m))}catch(e){}}
+const colaKey=()=>'juegos-cola@'+pid(PLAYER);
+const cola=()=>{try{return JSON.parse(localStorage.getItem(colaKey())||'[]')||[]}catch(e){return []}};
+const setCola=q=>{try{localStorage.setItem(colaKey(),JSON.stringify(q))}catch(e){}};
+async function api(params){
+  const u=new URL(SYNC_URL);Object.entries(params).forEach(([k,v])=>u.searchParams.set(k,v));
+  const ctl=new AbortController(),t=setTimeout(()=>ctl.abort(),15000);
+  try{const r=await fetch(u,{signal:ctl.signal});return await r.json()}finally{clearTimeout(t)}}
+const who=()=>({id:pid(PLAYER),nombre:PLAYER,clave:claveDe(PLAYER)});
+// Junta las estrellas de la hoja con las del dispositivo (se queda con el máximo) y sube lo que falte arriba.
+function mergeProg(remote){let changed=false;const up=[];
+  SUBJECTS.forEach(sub=>{const loc=readProg(sub.storeKey),rem=remote[sub.id]||{f:{},n:{},d:{}};
+    ['f','n','d'].forEach(k=>{const R_=rem[k]||{},L=loc[k];
+      Object.keys(R_).forEach(t=>{if((R_[t]||0)>(L[t]||0)){L[t]=R_[t];changed=true}});
+      Object.keys(L).forEach(t=>{if((L[t]||0)>(R_[t]||0))up.push({asig:sub.id,nivel:k,tema:t,estrellas:L[t]})})});
+    try{localStorage.setItem(PK(sub.storeKey),JSON.stringify(loc))}catch(e){}});
+  if(up.length){const q=cola();up.forEach(x=>{if(!q.some(y=>y.asig===x.asig&&y.nivel===x.nivel&&y.tema===x.tema&&y.estrellas>=x.estrellas))q.push(x)});setCola(q)}
+  return changed}
+let flushing=false;
+async function flush(){if(!SYNC_URL||!claveDe(PLAYER)||flushing)return;flushing=true;
+  try{let q=cola();while(q.length){const x=q[0];
+    const r=await api({accion:'guardar',...who(),...x,temaNombre:x.temaNombre||x.tema});
+    if(!r.ok&&r.error!=='datos')break;q=cola().slice(1);setCola(q)}}catch(e){}finally{flushing=false}}
+function queueStars(asig,nivel,tema,estrellas,temaNombre){if(!SYNC_URL)return;const q=cola();q.push({asig,nivel,tema,estrellas,temaNombre});setCola(q);flush()}
+// Al abrir: entra en la hoja, junta estrellas y sube lo pendiente. Si cambia algo, repinta la pantalla.
+async function syncNow(){if(!SYNC_URL||!PLAYER||!claveDe(PLAYER))return;
+  try{const r=await api({accion:'entrar',...who()});
+    if(r.ok){if(mergeProg(r.prog||{})&&curScreen&&!app.className)curScreen();flush()}
+    else if(r.error==='clave'){setClave(PLAYER,'');toast('Tus animales no coinciden. Vuelve a elegir jugador.')}}catch(e){}}
+let curScreen=null;
+function askClave(then){
+  redraw=null;app.className='';app.innerHTML='';
+  let picked=[];const slots=h('div',{class:'codeslots'}),err=h('p',{class:'hint',style:'color:var(--bad);margin:0',hidden:''});
+  const go=h('button',{class:'next'},'¡Entrar!');
+  const draw=()=>{slots.innerHTML='';for(let i=0;i<4;i++){const v=picked[i];slots.append(h('span',{class:i===picked.length?'cur':''},v==null?' ':ANIMALS[v][0]))}
+    go.disabled=picked.length<4;go.style.opacity=picked.length<4?.5:1};
+  const zoo=h('div',{class:'zoo'});ANIMALS.forEach(([e,n],i)=>zoo.append(h('button',{'aria-label':n,onclick(){if(picked.length<4){picked.push(i);tone([520+i*20]);draw()}}},e)));
+  go.onclick=async()=>{if(picked.length<4)return;const c=picked.map(i=>ANIMALS[i][0]).join('');go.disabled=true;go.textContent='Entrando…';err.hidden=true;
+    try{const r=await api({accion:'entrar',id:pid(PLAYER),nombre:PLAYER,clave:c});
+      if(r.ok){setClave(PLAYER,c);mergeProg(r.prog||{});good();if(r.nuevo)toast('¡Apúntate tus 4 animales para la próxima vez!');then();flush();return}
+      bad();err.textContent=r.error==='clave'?`Esos no son los animales de ${PLAYER}. Prueba otra vez o elige otro nombre.`:'No se ha podido entrar. Prueba otra vez.';err.hidden=false;picked=[];draw()}
+    catch(e){setClave(PLAYER,c);toast('Sin conexión: jugamos y se guardará luego');then();return}
+    go.textContent='¡Entrar!'};
+  app.append(h('header',{class:'hero'},h('div',{class:'hrow'},h('button',{class:'round','aria-label':'Volver',html:BACK_SVG,onclick(){askName(then)}}),h('span',{class:'eyebrow'},'Tu clave secreta'),soundBtn()),
+    h('h1',{},'Hola, ',h('span',{},PLAYER)),h('p',{},'Toca tus 4 animales secretos. Si es la primera vez, elígelos y recuérdalos: los necesitarás para jugar en otro móvil.')),
+    h('section',{class:'panel namebox'},slots,err,zoo,h('div',{class:'saverow'},h('button',{class:'next ghost',onclick(){picked.pop();draw()}},'Borrar'),go)));
+  draw();window.scrollTo(0,0);
+}
 function setPlayer(n){PLAYER=n;try{localStorage.setItem('juegos-jugador',n);const l=players().filter(x=>pid(x)!==pid(n));l.unshift(n);localStorage.setItem('juegos-jugadores',JSON.stringify(l.slice(0,8)))}catch(e){}}
+function afterName(then){if(SYNC_URL&&!claveDe(PLAYER))askClave(then);else{then();syncNow()}}
 function askName(then){
   redraw=null;app.className='';app.innerHTML='';document.title='Juegos de repaso';
   const inp=h('input',{class:'winp',type:'text',maxlength:'16',autocomplete:'off',autocapitalize:'words',spellcheck:'false',enterkeyhint:'go','aria-label':'Tu nombre',placeholder:'Escribe tu nombre'});
-  const go=()=>{const n=inp.value.trim().replace(/\s+/g,' ');if(!n){shake(inp);inp.focus();return}const c=n[0].toUpperCase()+n.slice(1);setPlayer(c);good();then()};
+  const go=()=>{const n=inp.value.trim().replace(/\s+/g,' ');if(!n){shake(inp);inp.focus();return}const c=n[0].toUpperCase()+n.slice(1);setPlayer(c);good();afterName(then)};
   inp.onkeydown=e=>{if(e.key==='Enter')go()};
   const known=players();
   app.append(h('header',{class:'hero'},h('div',{class:'hrow'},h('span',{class:'eyebrow'},'Repaso de 2.º de Primaria'),soundBtn()),
     h('h1',{html:'¡Hola! <span>¿Cómo te llamas?</span>'})),
     h('section',{class:'panel namebox'},
       known.length?h('h2',{class:'sect'},'¿Quién va a jugar?'):null,
-      known.length?h('div',{class:'saverow'},...known.map(n=>h('button',{class:'next ghost',onclick(){setPlayer(n);good();then()}},n))):null,
+      known.length?h('div',{class:'saverow'},...known.map(n=>h('button',{class:'next ghost',onclick(){setPlayer(n);good();afterName(then)}},n))):null,
       known.length?h('h2',{class:'sect'},'¿Eres nuevo? Escribe tu nombre'):null,
       inp,h('button',{class:'next',onclick:go},'¡A jugar!')));
   if(!known.length)setTimeout(()=>{try{inp.focus()}catch(e){}},60);window.scrollTo(0,0);
@@ -381,7 +439,7 @@ const BACK_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strok
 function soundBtn(){const b=h('button',{class:'round','aria-label':'Sonido',html:soundOn?SND_ON:SND_OFF});
   b.onclick=()=>{soundOn=!soundOn;try{localStorage.setItem('nael-sonido',soundOn?'1':'0')}catch(e){}b.innerHTML=soundOn?SND_ON:SND_OFF;if(soundOn)good()};return b}
 function hub(){
-  redraw=null;app.className='';app.innerHTML='';document.title='Juegos de repaso';
+  curScreen=hub;redraw=null;app.className='';app.innerHTML='';document.title='Juegos de repaso';
   app.append(h('header',{class:'hero'},h('div',{class:'hrow'},h('span',{class:'eyebrow'},'Repaso de 2.º de Primaria'),soundBtn()),
     h('h1',{},'¡Hola, ',h('span',{},PLAYER+'!')),h('p',{},'¿Qué quieres repasar hoy?'),
     h('button',{class:'back',style:'align-self:flex-start;margin-top:4px',onclick(){askName(hub)}},`¿No eres ${PLAYER}? Cambiar de jugador`)));
@@ -393,7 +451,7 @@ function hub(){
   app.append(list,h('div',{class:'savebox'},h('button',{class:'next ghost hubcode',onclick:showLoad},'Tengo un código de animales')));window.scrollTo(0,0);
 }
 function home(){
-  redraw=null;app.className='';document.title=T.title;
+  curScreen=home;redraw=null;app.className='';document.title=T.title;
   const prog=store.get(),all=[...MISSIONS,FINAL];
   const total=all.reduce((n,m)=>n+(prog[m.id]||0),0),nextM=all.find(m=>!prog[m.id]);
   app.innerHTML='';
@@ -425,7 +483,7 @@ function home(){
 }
 
 let M,acts,idx;
-function start(m){M=m;acts=applyLevel(m.build?m.build(LV):m.acts);idx=0;mistakes=0;fails=[];render()}
+function start(m){curScreen=null;M=m;acts=applyLevel(m.build?m.build(LV):m.acts);idx=0;mistakes=0;fails=[];render()}
 function render(){
   redraw=null;app.className='mission';app.innerHTML='';
   const a=acts[idx];
@@ -461,7 +519,8 @@ function askExit(){
 function finish(){
   redraw=null;app.className='';
   const th=STAR_TH[LV],stars=mistakes<=th[0]?3:mistakes<=th[1]?2:1;
-  const prog=store.get();prog[M.id]=Math.max(prog[M.id]||0,stars);store.set(prog);
+  const prog=store.get();const better=stars>(prog[M.id]||0);prog[M.id]=Math.max(prog[M.id]||0,stars);store.set(prog);
+  if(better)queueStars(T.id,LVINFO[LV].k,M.id,stars,M.name);
   app.innerHTML='';
   const msg=stars===3?'¡Increíble! Casi sin fallos.':stars===2?'¡Muy bien! Si repites, seguro que sacas 3 estrellas.':'¡Bien hecho! Vamos a repetirla para aprenderla mejor.';
   app.append(h('section',{class:'panel end',style:`--mc:${M.color}`},
@@ -734,9 +793,11 @@ function checkPending(){let r=null;try{r=JSON.parse(localStorage.getItem('nael-p
 function registrar(t){T=t;ICONS={...HUB_ICONS,...t.icons};DIAGRAMS=t.diagrams||{};DIAG_VIEW=t.diagView||{};MISSIONS=t.missions;FINAL=t.final;loadLevel();home();checkPending()}
 function boot(){
   if(!PLAYER){askName(boot);return}
+  if(SYNC_URL&&!claveDe(PLAYER)){askClave(boot);return}
+  setTimeout(syncNow,300);
   const s=ASIG&&SUBJECTS.find(x=>x.id===ASIG);
   if(!s){hub();return}
-  const el=document.createElement('script');el.src=`temario/${s.file}?v=202611031730`;
+  const el=document.createElement('script');el.src=`temario/${s.file}?v=202611041200`;
   el.onerror=()=>{app.innerHTML='';app.append(h('p',{class:'qtext'},'No se ha podido cargar este temario.'),h('a',{class:'back',href:'base.html'},'Volver al inicio'))};
   document.body.append(el);
 }

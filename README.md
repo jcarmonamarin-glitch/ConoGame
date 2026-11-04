@@ -82,3 +82,10 @@ Abre `base.html` en el navegador (no hace falta servidor).
 
 Al entrar, el juego pregunta el nombre. Cada nombre guarda sus estrellas aparte en el navegador (`<clave>@<nombre>`).
 Nael usa las claves de siempre, para no perder lo que ya tenía. "Cambiar de jugador" está en el menú principal.
+
+## Base de datos (opcional)
+
+Las estrellas pueden guardarse también en la hoja de Google Sheets "ConoGame - Base de datos" (pestañas Jugadores, Estrellas y Resumen).
+El script está en `apps-script/Codigo.gs`. Al desplegarlo como aplicación web, pon su URL en `SYNC_URL` (al principio del motor, en `base.html`).
+Con `SYNC_URL` vacío, todo funciona solo en el dispositivo.
+Con base de datos, cada jugador elige una clave de 4 animales y con ella recupera sus estrellas en cualquier móvil. Se juega igual sin internet: lo pendiente se sube al volver la conexión.
