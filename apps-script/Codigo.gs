@@ -9,6 +9,8 @@
  *       → {ok:true, nuevo, prog:{ingles:{f:{n110:3}, n:{}, d:{}}, ...}}
  *   ?accion=guardar&id=lucia&nombre=Lucía&clave=...&asig=ingles&nivel=n&tema=n110&temaNombre=Numbers 1-10&estrellas=3
  *       → guarda el máximo entre lo que había y lo nuevo.
+ *   ?accion=borrar&id=lucia&clave=...&asig=ingles
+ *       → borra todas las estrellas de ese jugador en esa asignatura (las tres dificultades).
  */
 const ASIG = {medio: 'Conocimiento del Medio', lengua: 'Lengua', mates: 'Matemáticas', ingles: 'Inglés'};
 const NIV = {f: 'Fácil', n: 'Normal', d: 'Difícil'};
@@ -22,6 +24,7 @@ function doGet(e) {
     lock.waitLock(15000);
     if (p.accion === 'entrar') r = entrar(p);
     else if (p.accion === 'guardar') r = guardar(p);
+    else if (p.accion === 'borrar') r = borrar(p);
     else r = {ok: false, error: 'accion'};
   } catch (err) {
     r = {ok: false, error: String(err)};
@@ -108,4 +111,20 @@ function guardar(p) {
   }
   h.appendRow([p.id, texto(p.nombre, 24), asig, niv, texto(p.temaNombre || tema, 40), est, ahora, tema]);
   return {ok: true};
+}
+
+function borrar(p) {
+  const c = comprobar(p);
+  if (!c.ok) return c;
+  if (!c.j) return {ok: true};
+  const asig = ASIG[p.asig];
+  if (!asig) return {ok: false, error: 'datos'};
+  const h = hoja('Estrellas'), n = h.getLastRow();
+  if (n < 2) return {ok: true};
+  const v = h.getRange(2, 1, n - 1, 3).getValues();
+  let borradas = 0;
+  for (let i = v.length - 1; i >= 0; i--) { // de abajo arriba para no descolocar las filas
+    if (String(v[i][0]) === p.id && v[i][2] === asig) { h.deleteRow(i + 2); borradas++; }
+  }
+  return {ok: true, borradas: borradas};
 }

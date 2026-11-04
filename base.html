@@ -286,7 +286,7 @@ a.round{text-decoration:none}
 <body>
 <canvas id="fx"></canvas>
 <main id="app"></main>
-<script src="temario/indice.js?v=202611041300"></script>
+<script src="temario/indice.js?v=202611041400"></script>
 <script>
 /* ======================================================================
    Motor de los juegos de repaso (empezaron siendo los de Nael). Todo lo común vive aquí.
@@ -363,12 +363,15 @@ function mergeProg(remote){let changed=false;const up=[];
 let flushing=false;
 async function flush(){if(!SYNC_URL||!claveDe(PLAYER)||flushing)return;flushing=true;
   try{let q=cola();while(q.length){const x=q[0];
-    const r=await api({accion:'guardar',...who(),...x,temaNombre:x.temaNombre||x.tema});
+    const r=x.op==='borrar'?await api({accion:'borrar',...who(),asig:x.asig}):await api({accion:'guardar',...who(),...x,temaNombre:x.temaNombre||x.tema});
     if(!r.ok&&r.error!=='datos')break;q=cola().slice(1);setCola(q)}}catch(e){}finally{flushing=false}}
+function wipeSubject(){try{localStorage.removeItem(PK(T.storeKey))}catch(e){}
+  if(!SYNC_URL)return;const q=cola().filter(x=>x.asig!==T.id);q.push({op:'borrar',asig:T.id});setCola(q);flush()}
 function queueStars(asig,nivel,tema,estrellas,temaNombre){if(!SYNC_URL)return;const q=cola();q.push({asig,nivel,tema,estrellas,temaNombre});setCola(q);flush()}
 // Al abrir: entra en la hoja, junta estrellas y sube lo pendiente. Si cambia algo, repinta la pantalla.
 async function syncNow(){if(!SYNC_URL||!PLAYER||!claveDe(PLAYER))return;
-  try{const r=await api({accion:'entrar',...who()});
+  try{await flush();if(cola().some(x=>x.op==='borrar'))return; // si no se pudo borrar arriba, no volver a bajar esas estrellas
+    const r=await api({accion:'entrar',...who()});
     if(r.ok){if(mergeProg(r.prog||{})&&curScreen&&!app.className)curScreen();flush()}
     else if(r.error==='clave'){setClave(PLAYER,'');toast('Tus animales no coinciden. Vuelve a elegir jugador.')}}catch(e){}}
 let curScreen=null;
@@ -448,7 +451,7 @@ function hub(){
     list.append(h('a',{class:'subj',href:`base.html?a=${s.id}`,style:`--c:${s.color}`},
       h('span',{class:'ic',html:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">${s.icon}</svg>`}),
       h('span',{class:'tx'},h('span',{class:'kind'},s.kind),h('span',{class:'nm'},s.name),h('span',{class:'stars sm',html:starSvg(true)+`<span>${n} estrellas</span>`}))))});
-  app.append(list,h('div',{class:'savebox'},h('button',{class:'next ghost hubcode',onclick:showLoad},'Tengo un código de animales')));window.scrollTo(0,0);
+  app.append(list,SYNC_URL?null:h('div',{class:'savebox'},h('button',{class:'next ghost hubcode',onclick:showLoad},'Tengo un código de animales')));window.scrollTo(0,0);
 }
 function home(){
   curScreen=home;redraw=null;app.className='';document.title=T.title;
@@ -474,11 +477,11 @@ function home(){
     if(m===nextM)b.append(h('span',{class:'badge'},total?'¡Sigue aquí!':'¡Empieza aquí!'));
     g.append(b);
   });
-  app.append(g,h('section',{class:'savebox'},h('h2',{class:'sect'},'Guarda tus estrellas'),
+  app.append(g,SYNC_URL?null:h('section',{class:'savebox'},h('h2',{class:'sect'},'Guarda tus estrellas'),
     h('div',{class:'saverow'},h('button',{class:'next',onclick:showSave},'Ver mi código'),h('button',{class:'next ghost',onclick:showLoad},'Tengo un código'))),
     h('details',{class:'parents'},h('summary',{},'Para papá y mamá'),
-    h('p',{},'Fácil: menos preguntas y solo dos opciones para elegir. Normal: como en clase. Difícil: todas las preguntas y sin pistas (en Matemáticas, además, números más grandes y más parecidos). Cada dificultad guarda sus propias estrellas en este dispositivo.'),
-    h('button',{class:'back',style:'margin-top:10px',onclick(){try{localStorage.removeItem(PK(T.storeKey))}catch(e){}home()}},'Borrar las estrellas de esta asignatura')));
+    h('p',{},'Fácil: menos preguntas y solo dos opciones para elegir. Normal: como en clase. Difícil: todas las preguntas y sin pistas (en Matemáticas, además, números más grandes y más parecidos). Cada dificultad guarda sus propias estrellas'+(SYNC_URL?`, y se guardan en la base de datos con el nombre de ${PLAYER} y su clave de animales.`:' en este dispositivo.')),
+    h('button',{class:'back',style:'margin-top:10px',onclick:askWipe},`Borrar las estrellas de ${PLAYER} en esta asignatura`)));
   window.scrollTo(0,0);
 }
 
@@ -507,6 +510,12 @@ function render(){
   window.scrollTo(0,0);
 }
 
+function askWipe(){
+  const m=modal(h('h2',{},'¿Borrar las estrellas?'),
+    h('p',{class:'hint',style:'margin:0'},`Se borran todas las estrellas de ${PLAYER} en ${T.title}, en las tres dificultades`+(SYNC_URL?', en este móvil y en la base de datos.':'.')+' No se puede deshacer.'),
+    h('button',{class:'next ghost',onclick(){m.remove()}},'No, déjalas'),
+    h('button',{class:'next',style:'background:var(--bad);box-shadow:0 5px 0 #8a1f1f',onclick(){m.remove();wipeSubject();home();toast('Estrellas borradas')}},'Sí, borrar'));
+}
 function askExit(){
   const m=h('div',{class:'modal',onclick(e){if(e.target===m)m.remove()}},
     h('div',{class:'mbox'},h('h2',{},'¿Quieres salir?'),
@@ -797,7 +806,7 @@ function boot(){
   setTimeout(syncNow,300);
   const s=ASIG&&SUBJECTS.find(x=>x.id===ASIG);
   if(!s){hub();return}
-  const el=document.createElement('script');el.src=`temario/${s.file}?v=202611041300`;
+  const el=document.createElement('script');el.src=`temario/${s.file}?v=202611041400`;
   el.onerror=()=>{app.innerHTML='';app.append(h('p',{class:'qtext'},'No se ha podido cargar este temario.'),h('a',{class:'back',href:'base.html'},'Volver al inicio'))};
   document.body.append(el);
 }
