@@ -286,7 +286,7 @@ a.round{text-decoration:none}
 <body>
 <canvas id="fx"></canvas>
 <main id="app"></main>
-<script src="temario/indice.js?v=202611041400"></script>
+<script src="temario/indice.js?v=202611041500"></script>
 <script>
 /* ======================================================================
    Motor de los juegos de repaso (empezaron siendo los de Nael). Todo lo común vive aquí.
@@ -339,18 +339,19 @@ function players(){try{return JSON.parse(localStorage.getItem('juegos-jugadores'
    Con SYNC_URL, cada jugador tiene una clave de 4 animales y sus estrellas se guardan también en la hoja.
    El dispositivo sigue siendo lo primero: se juega sin internet y se sincroniza por detrás. */
 const SYNC_URL='https://script.google.com/macros/s/AKfycby1Ke2I3TjEofVJpXCRHJJsqvHz11znhOBO0Kkg3sktXIo6yNcD2J7mSG6ZJcetPuEyvQ/exec';
-const SYNC_TEMAS={}; // nombre visible de cada tema, para la hoja
 const claves=()=>{try{return JSON.parse(localStorage.getItem('juegos-claves')||'{}')||{}}catch(e){return {}}};
 const claveDe=n=>claves()[pid(n)]||'';
 function setClave(n,c){try{const m=claves();if(c)m[pid(n)]=c;else delete m[pid(n)];localStorage.setItem('juegos-claves',JSON.stringify(m))}catch(e){}}
-const colaKey=()=>'juegos-cola@'+pid(PLAYER);
-const cola=()=>{try{return JSON.parse(localStorage.getItem(colaKey())||'[]')||[]}catch(e){return []}};
-const setCola=q=>{try{localStorage.setItem(colaKey(),JSON.stringify(q))}catch(e){}};
+/* Cola de envíos pendientes, una por jugador. Cada envío lleva un id (qid) para quitar justo ese al confirmarse. */
+const colaKey=P=>'juegos-cola@'+pid(P);
+const cola=(P=PLAYER)=>{try{return JSON.parse(localStorage.getItem(colaKey(P))||'[]')||[]}catch(e){return []}};
+const setCola=(q,P=PLAYER)=>{try{localStorage.setItem(colaKey(P),JSON.stringify(q))}catch(e){}};
+const newQid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
 async function api(params){
   const u=new URL(SYNC_URL);Object.entries(params).forEach(([k,v])=>u.searchParams.set(k,v));
   const ctl=new AbortController(),t=setTimeout(()=>ctl.abort(),15000);
   try{const r=await fetch(u,{signal:ctl.signal});return await r.json()}finally{clearTimeout(t)}}
-const who=()=>({id:pid(PLAYER),nombre:PLAYER,clave:claveDe(PLAYER)});
+const who=(P=PLAYER)=>({id:pid(P),nombre:P,clave:claveDe(P)});
 // Junta las estrellas de la hoja con las del dispositivo (se queda con el máximo) y sube lo que falte arriba.
 function mergeProg(remote){let changed=false;const up=[];
   SUBJECTS.forEach(sub=>{const loc=readProg(sub.storeKey),rem=remote[sub.id]||{f:{},n:{},d:{}};
@@ -358,22 +359,31 @@ function mergeProg(remote){let changed=false;const up=[];
       Object.keys(R_).forEach(t=>{if((R_[t]||0)>(L[t]||0)){L[t]=R_[t];changed=true}});
       Object.keys(L).forEach(t=>{if((L[t]||0)>(R_[t]||0))up.push({asig:sub.id,nivel:k,tema:t,estrellas:L[t]})})});
     try{localStorage.setItem(PK(sub.storeKey),JSON.stringify(loc))}catch(e){}});
-  if(up.length){const q=cola();up.forEach(x=>{if(!q.some(y=>y.asig===x.asig&&y.nivel===x.nivel&&y.tema===x.tema&&y.estrellas>=x.estrellas))q.push(x)});setCola(q)}
+  if(up.length){const q=cola();up.forEach(x=>{if(!q.some(y=>y.asig===x.asig&&y.nivel===x.nivel&&y.tema===x.tema&&y.estrellas>=x.estrellas))q.push({...x,qid:newQid()})});setCola(q)}
   return changed}
 let flushing=false;
-async function flush(){if(!SYNC_URL||!claveDe(PLAYER)||flushing)return;flushing=true;
-  try{let q=cola();while(q.length){const x=q[0];
-    const r=x.op==='borrar'?await api({accion:'borrar',...who(),asig:x.asig}):await api({accion:'guardar',...who(),...x,temaNombre:x.temaNombre||x.tema});
-    if(!r.ok&&r.error!=='datos')break;q=cola().slice(1);setCola(q)}}catch(e){}finally{flushing=false}}
+// Envía la cola del jugador actual. Si cambia de jugador a mitad, para (lo suyo se enviará cuando vuelva).
+async function flush(){const P=PLAYER;if(!SYNC_URL||!P||!claveDe(P)||flushing)return;flushing=true;
+  try{let retried=false;
+    for(let q=cola(P);q.length&&PLAYER===P;q=cola(P)){const x=q[0];
+      const send=()=>x.op==='borrar'?api({accion:'borrar',...who(P),asig:x.asig}):api({accion:'guardar',...who(P),asig:x.asig,nivel:x.nivel,tema:x.tema,estrellas:x.estrellas,temaNombre:x.temaNombre||x.tema});
+      let r=await send();
+      // Si borraron al jugador de la hoja, se vuelve a crear con su clave y se reintenta una vez
+      if(!r.ok&&r.error==='noexiste'&&!retried){retried=true;const e=await api({accion:'entrar',...who(P)});if(e.ok)r=await send()}
+      if(!r.ok&&r.error!=='datos')break;
+      setCola(cola(P).filter(y=>x.qid?y.qid!==x.qid:JSON.stringify(y)!==JSON.stringify(x)),P)}}
+  catch(e){}finally{flushing=false}}
 function wipeSubject(){try{localStorage.removeItem(PK(T.storeKey))}catch(e){}
-  if(!SYNC_URL)return;const q=cola().filter(x=>x.asig!==T.id);q.push({op:'borrar',asig:T.id});setCola(q);flush()}
-function queueStars(asig,nivel,tema,estrellas,temaNombre){if(!SYNC_URL)return;const q=cola();q.push({asig,nivel,tema,estrellas,temaNombre});setCola(q);flush()}
+  if(!SYNC_URL)return;const q=cola().filter(x=>x.asig!==T.id);q.push({op:'borrar',asig:T.id,qid:newQid()});setCola(q);flush()}
+function queueStars(asig,nivel,tema,estrellas,temaNombre){if(!SYNC_URL)return;const q=cola();q.push({asig,nivel,tema,estrellas,temaNombre,qid:newQid()});setCola(q);flush()}
 // Al abrir: entra en la hoja, junta estrellas y sube lo pendiente. Si cambia algo, repinta la pantalla.
-async function syncNow(){if(!SYNC_URL||!PLAYER||!claveDe(PLAYER))return;
-  try{await flush();if(cola().some(x=>x.op==='borrar'))return; // si no se pudo borrar arriba, no volver a bajar esas estrellas
-    const r=await api({accion:'entrar',...who()});
+let syncing=false;
+async function syncNow(){const P=PLAYER;if(!SYNC_URL||!P||!claveDe(P)||syncing)return;syncing=true;
+  try{await flush();if(PLAYER!==P||cola(P).some(x=>x.op==='borrar'))return; // si no se pudo borrar arriba, no volver a bajar esas estrellas
+    const r=await api({accion:'entrar',...who(P)});
+    if(PLAYER!==P)return; // cambió de jugador mientras tanto: no mezclar estrellas
     if(r.ok){if(mergeProg(r.prog||{})&&curScreen&&!app.className)curScreen();flush()}
-    else if(r.error==='clave'){setClave(PLAYER,'');toast('Tus animales no coinciden. Vuelve a elegir jugador.')}}catch(e){}}
+    else if(r.error==='clave'){setClave(P,'');toast('Tus animales no coinciden. Vuelve a elegir jugador.')}}catch(e){}finally{syncing=false}}
 let curScreen=null;
 function askClave(then){
   redraw=null;app.className='';app.innerHTML='';
@@ -383,8 +393,10 @@ function askClave(then){
     go.disabled=picked.length<4;go.style.opacity=picked.length<4?.5:1};
   const zoo=h('div',{class:'zoo'});ANIMALS.forEach(([e,n],i)=>zoo.append(h('button',{'aria-label':n,onclick(){if(picked.length<4){picked.push(i);tone([520+i*20]);draw()}}},e)));
   go.onclick=async()=>{if(picked.length<4)return;const c=picked.map(i=>ANIMALS[i][0]).join('');go.disabled=true;go.textContent='Entrando…';err.hidden=true;
-    try{const r=await api({accion:'entrar',id:pid(PLAYER),nombre:PLAYER,clave:c});
-      if(r.ok){setClave(PLAYER,c);mergeProg(r.prog||{});good();if(r.nuevo)toast('¡Apúntate tus 4 animales para la próxima vez!');then();flush();return}
+    const P=PLAYER;
+    try{const r=await api({accion:'entrar',id:pid(P),nombre:P,clave:c});
+      if(PLAYER!==P)return;
+      if(r.ok){setClave(P,c);if(!cola(P).some(x=>x.op==='borrar'))mergeProg(r.prog||{});good();if(r.nuevo)toast('¡Apúntate tus 4 animales para la próxima vez!');then();flush();return}
       bad();err.textContent=r.error==='clave'?`Esos no son los animales de ${PLAYER}. Prueba otra vez o elige otro nombre.`:'No se ha podido entrar. Prueba otra vez.';err.hidden=false;picked=[];draw()}
     catch(e){setClave(PLAYER,c);toast('Sin conexión: jugamos y se guardará luego');then();return}
     go.textContent='¡Entrar!'};
@@ -398,7 +410,7 @@ function afterName(then){if(SYNC_URL&&!claveDe(PLAYER))askClave(then);else{then(
 function askName(then){
   redraw=null;app.className='';app.innerHTML='';document.title='Juegos de repaso';
   const inp=h('input',{class:'winp',type:'text',maxlength:'16',autocomplete:'off',autocapitalize:'words',spellcheck:'false',enterkeyhint:'go','aria-label':'Tu nombre',placeholder:'Escribe tu nombre'});
-  const go=()=>{const n=inp.value.trim().replace(/\s+/g,' ');if(!n){shake(inp);inp.focus();return}const c=n[0].toUpperCase()+n.slice(1);setPlayer(c);good();afterName(then)};
+  const go=()=>{const n=inp.value.trim().replace(/\s+/g,' ');if(!pid(n)){shake(inp);inp.placeholder='Escribe tu nombre con letras';inp.value='';inp.focus();return}const c=n[0].toUpperCase()+n.slice(1);setPlayer(c);good();afterName(then)};
   inp.onkeydown=e=>{if(e.key==='Enter')go()};
   const known=players();
   app.append(h('header',{class:'hero'},h('div',{class:'hrow'},h('span',{class:'eyebrow'},'Repaso de 2.º de Primaria'),soundBtn()),
@@ -451,7 +463,7 @@ function hub(){
     list.append(h('a',{class:'subj',href:`base.html?a=${s.id}`,style:`--c:${s.color}`},
       h('span',{class:'ic',html:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">${s.icon}</svg>`}),
       h('span',{class:'tx'},h('span',{class:'kind'},s.kind),h('span',{class:'nm'},s.name),h('span',{class:'stars sm',html:starSvg(true)+`<span>${n} estrellas</span>`}))))});
-  app.append(list,SYNC_URL?null:h('div',{class:'savebox'},h('button',{class:'next ghost hubcode',onclick:showLoad},'Tengo un código de animales')));window.scrollTo(0,0);
+  app.append(...[list,SYNC_URL?null:h('div',{class:'savebox'},h('button',{class:'next ghost hubcode',onclick:showLoad},'Tengo un código de animales'))].filter(Boolean));window.scrollTo(0,0);
 }
 function home(){
   curScreen=home;redraw=null;app.className='';document.title=T.title;
@@ -477,11 +489,11 @@ function home(){
     if(m===nextM)b.append(h('span',{class:'badge'},total?'¡Sigue aquí!':'¡Empieza aquí!'));
     g.append(b);
   });
-  app.append(g,SYNC_URL?null:h('section',{class:'savebox'},h('h2',{class:'sect'},'Guarda tus estrellas'),
+  app.append(...[g,SYNC_URL?null:h('section',{class:'savebox'},h('h2',{class:'sect'},'Guarda tus estrellas'),
     h('div',{class:'saverow'},h('button',{class:'next',onclick:showSave},'Ver mi código'),h('button',{class:'next ghost',onclick:showLoad},'Tengo un código'))),
     h('details',{class:'parents'},h('summary',{},'Para papá y mamá'),
     h('p',{},'Fácil: menos preguntas y solo dos opciones para elegir. Normal: como en clase. Difícil: todas las preguntas y sin pistas (en Matemáticas, además, números más grandes y más parecidos). Cada dificultad guarda sus propias estrellas'+(SYNC_URL?`, y se guardan en la base de datos con el nombre de ${PLAYER} y su clave de animales.`:' en este dispositivo.')),
-    h('button',{class:'back',style:'margin-top:10px',onclick:askWipe},`Borrar las estrellas de ${PLAYER} en esta asignatura`)));
+    h('button',{class:'back',style:'margin-top:10px',onclick:askWipe},`Borrar las estrellas de ${PLAYER} en esta asignatura`))].filter(Boolean));
   window.scrollTo(0,0);
 }
 
@@ -594,7 +606,7 @@ function actFill(a,box,done){
 }
 function actOrder(a,box,done){
   const wrap=h('div',{class:'order'});let next=0;
-  let it;do{it=shuffle(a.items.map((t,i)=>({t,i})))}while(it.every((o,k)=>o.i===k));
+  let it;do{it=shuffle(a.items.map((t,i)=>({t,i})))}while(a.items.length>1&&it.every((o,k)=>o.i===k));
   const cards=[];
   it.forEach(o=>{const bx=h('span',{class:'box'});const b=h('button',{class:'ocard',onclick(){
     if(b.classList.contains('ok')||b.classList.contains('wrong')||next>=a.items.length)return;
@@ -624,7 +636,7 @@ function quizEngine(items,box,done,opts){
   const sayB=h('button',{class:'saybtn',hidden:'',html:SND_ON+'<span>Escuchar otra vez</span>'});
   const wrap=h('div',{class:'sents'});if(opts&&opts.top)wrap.append(opts.top);wrap.append(pic,sayB,q,os);box.append(wrap);
   function show(){const it=items[k];if(opts&&opts.onShow)opts.onShow(k);pic.innerHTML=it.pic||'';pic.hidden=!it.pic;q.textContent=it.q;
-    sayB.hidden=!it.say;if(it.say){sayB.onclick=()=>speak(it.say,T.lang||'en-GB');if(soundOn)sayB.onclick()}os.innerHTML='';os.className='opts'+(it.tf!==undefined||(opts&&opts.two)?' two':'')+(it.row?' row':'');
+    sayB.hidden=!it.say;if(it.say){sayB.onclick=()=>speak(it.say,T.lang||'es-ES');if(soundOn)sayB.onclick()}os.innerHTML='';os.className='opts'+(it.tf!==undefined||it.two||(opts&&opts.two)?' two':'')+(it.row?' row':'');
     const choices=it.tf!==undefined?['Verdadero','Falso']:it.opts;const ans=it.tf!==undefined?(it.tf?0:1):it.a;
     const order=it.tf!==undefined||it.keep?choices.map((c,i)=>i):shuffle(choices.map((c,i)=>i));
     let locked=false;
@@ -700,7 +712,7 @@ function actWrite(a,box,done){
         fail({q:it.q+(it.big!=null?' '+it.big:'')+(it.say?` (sonaba: «${it.say}»)`:''),pic:it.pic||'',bad:inp.value.trim(),ok:ans[0]});setTimeout(nx,2600)}};
     const go=h('button',{class:'next',style:'margin:0',onclick:check},'Comprobar');
     inp.onkeydown=e=>{if(e.key==='Enter')check()};
-    let sb=null;if(it.say){sb=h('button',{class:'saybtn',html:SND_ON+'<span>Escuchar otra vez</span>',onclick(){speak(it.say,T.lang||'en-GB')}});if(soundOn)speak(it.say,T.lang||'en-GB')}
+    let sb=null;if(it.say){sb=h('button',{class:'saybtn',html:SND_ON+'<span>Escuchar otra vez</span>',onclick(){speak(it.say,T.lang||'es-ES')}});if(soundOn)speak(it.say,T.lang||'es-ES')}
     wrap.append(...[it.pic?h('div',{class:'diagram pic',html:it.pic}):null,sb,h('p',{class:'qtext'},it.q),it.big!=null?h('div',{class:'bignum'},String(it.big)):null,inp,go,fb,h('div',{class:'count'},`${k+1} de ${a.items.length}`)].filter(Boolean));
     setTimeout(()=>{try{inp.focus({preventScroll:true})}catch(e){}},60);
   }
@@ -806,7 +818,7 @@ function boot(){
   setTimeout(syncNow,300);
   const s=ASIG&&SUBJECTS.find(x=>x.id===ASIG);
   if(!s){hub();return}
-  const el=document.createElement('script');el.src=`temario/${s.file}?v=202611041400`;
+  const el=document.createElement('script');el.src=`temario/${s.file}?v=202611041500`;
   el.onerror=()=>{app.innerHTML='';app.append(h('p',{class:'qtext'},'No se ha podido cargar este temario.'),h('a',{class:'back',href:'base.html'},'Volver al inicio'))};
   document.body.append(el);
 }

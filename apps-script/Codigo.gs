@@ -56,7 +56,7 @@ function buscarJugador(id) {
 function comprobar(p) {
   if (!idValido(p.id)) return {ok: false, error: 'id'};
   const clave = String(p.clave || '');
-  if (!clave) return {ok: false, error: 'clave'};
+  if (!clave || clave.length > 40) return {ok: false, error: 'clave'};
   const j = buscarJugador(p.id);
   if (j && j.clave !== clave) return {ok: false, error: 'clave'};
   return {ok: true, j: j, clave: clave};
