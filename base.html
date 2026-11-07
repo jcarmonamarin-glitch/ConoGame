@@ -286,7 +286,7 @@ a.round{text-decoration:none}
 <body>
 <canvas id="fx"></canvas>
 <main id="app"></main>
-<script src="temario/indice.js?v=202611041500"></script>
+<script src="temario/indice.js?v=202611071700"></script>
 <script>
 /* ======================================================================
    Motor de los juegos de repaso (empezaron siendo los de Nael). Todo lo común vive aquí.
@@ -770,8 +770,10 @@ function decodeCode(n){if(n.length!==6||codeSum(n)!==n[5])return null;
   if(lv<1||!SUBJECTS[si])return null;return {si,lv,stars:[...Array(8)].map((_,i)=>(d>>(2*i))&3)}}
 function toast(t){const e=h('div',{class:'toast',role:'status'},t);document.body.append(e);setTimeout(()=>e.remove(),2800)}
 function modal(...kids){const m=h('div',{class:'modal',onclick(e){if(e.target===m)m.remove()}},h('div',{class:'mbox'},...kids));document.body.append(m);return m}
+// Orden de los temas en el código de animales (una asignatura puede fijarlo con codeOrder)
+const codeIds=()=>T.codeOrder||[...MISSIONS,FINAL].map(m=>m.id);
 function showSave(){
-  const ids=[...MISSIONS,FINAL].map(m=>m.id),prog=store.get(),si=SUBJECTS.findIndex(x=>x.id===T.id);
+  const ids=codeIds(),prog=store.get(),si=SUBJECTS.findIndex(x=>x.id===T.id);
   const code=encodeCode(si,LV,ids.map(id=>prog[id]||0));
   const m=modal(h('h2',{},'Tu código secreto'),
     h('p',{class:'hint',style:'margin:0'},`${T.title} · ${LVINFO[LV].name}`),
@@ -803,7 +805,7 @@ function restore(r){
   location.href=`base.html?a=${s.id}`;
 }
 function applyRestore(r){
-  const ids=[...MISSIONS,FINAL].map(m=>m.id);LV=r.lv;saveLevel();
+  const ids=codeIds();LV=r.lv;saveLevel();
   const prog=store.get();let n=0;ids.forEach((id,i)=>{if(r.stars[i]){prog[id]=Math.max(prog[id]||0,r.stars[i])}n+=prog[id]||0});
   store.set(prog);home();confetti();tone([523,659,784,1047],.11);toast(`¡Recuperado! ${LVINFO[LV].name}: ${n} estrellas`);
 }
@@ -818,7 +820,7 @@ function boot(){
   setTimeout(syncNow,300);
   const s=ASIG&&SUBJECTS.find(x=>x.id===ASIG);
   if(!s){hub();return}
-  const el=document.createElement('script');el.src=`temario/${s.file}?v=202611041500`;
+  const el=document.createElement('script');el.src=`temario/${s.file}?v=202611071700`;
   el.onerror=()=>{app.innerHTML='';app.append(h('p',{class:'qtext'},'No se ha podido cargar este temario.'),h('a',{class:'back',href:'base.html'},'Volver al inicio'))};
   document.body.append(el);
 }

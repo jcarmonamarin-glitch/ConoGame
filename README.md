@@ -35,7 +35,7 @@ temario/indice.js    Lista de asignaturas del menú principal
 temario/medio.js     Conocimiento del Medio · Tema 1 (el cuerpo humano)
 temario/lengua.js    Lengua (abecedario, orden alfabético, sílabas, sinónimos, antónimos). El examen final se genera al azar con palabras que no salen en las misiones
 temario/mates.js     Matemáticas (numeración 0-99; las preguntas se generan al azar)
-temario/ingles.js    Inglés (números 1-20, juguetes, This is / These are). Voz en inglés; preguntas al azar
+temario/ingles.js    Inglés (números 1-20, juguetes, This is / These are, Whose is this? → It's / They're Anna's). Voz en inglés; preguntas al azar
 index.html, medio.html, lengua.html, matematicas.html, ingles.html   Redirecciones a base.html
 ```
 
@@ -71,6 +71,8 @@ Cada misión es `{id, name, sub, color, acts:[...]}` o `{..., build(LV){ return 
 Todas aceptan `title` e `hint` (la pista se oculta en Difícil).
 
 En `quiz`, `say:'seven'` lee esa palabra en voz alta al salir la pregunta, en el idioma de la asignatura (`registrar({lang:'en-GB', ...})`), con un botón para repetirla.
+
+Una asignatura puede fijar el orden de los temas en el código con `codeOrder:[ids]` (Inglés lo usa para que los códigos viejos sigan valiendo al añadir temas).
 
 El código de animales guarda la asignatura en 2 bits: caben 4 asignaturas como mucho (Inglés es la cuarta).
 

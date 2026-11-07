@@ -1,4 +1,4 @@
-// Inglés · números del 1 al 20, juguetes y This is / These are
+// Inglés · números del 1 al 20, juguetes, This is / These are y Whose is this?
 // Contenido de la asignatura. Lo carga base.html con ?a=ingles
 // Las misiones se generan al azar en cada partida: build(LV) recibe el nivel (1 Fácil, 2 Normal, 3 Difícil).
 // La voz habla en inglés (lang:'en-GB'): los ejercicios de escuchar usan el campo `say`.
@@ -9,7 +9,8 @@ const ICONS={
  n120:'<path d="M4 20l4-1 11-11-3-3L5 16z"/><path d="M14 6l3 3"/>',
  toys:'<rect x="5" y="9" width="14" height="11" rx="3"/><path d="M12 9V5"/><circle cx="12" cy="4" r="1.5"/><circle cx="9.5" cy="14" r="1.2"/><circle cx="14.5" cy="14" r="1.2"/>',
  plural:'<rect x="3" y="9" width="6" height="6" rx="1.5"/><rect x="13" y="5" width="6" height="6" rx="1.5"/><rect x="15" y="13" width="6" height="6" rx="1.5"/>',
- this:'<path d="M4 5h16v10H9l-5 4z"/><path d="M8 9h8M8 12h5"/>'
+ this:'<path d="M4 5h16v10H9l-5 4z"/><path d="M8 9h8M8 12h5"/>',
+ whose:'<circle cx="9" cy="8" r="3.5"/><path d="M3 20c0-3.5 2.7-6 6-6s6 2.5 6 6"/><path d="M16.5 5.5a2.5 2.5 0 1 1 3.2 2.4c-.8.3-1.2.9-1.2 1.6v.5"/><circle cx="18.5" cy="13" r=".6" fill="currentColor"/>'
 };
 
 /* ---------- datos ---------- */
@@ -81,6 +82,29 @@ function thisCount(ts,LV){return {type:'write',title:'Mira, cuenta y escribe',hi
 function thisSentence(ts){return {type:'write',title:'Escribe la frase entera',hint:'Empieza con This is o These are.',
   items:ts.map(t=>{const n=Math.random()<.5?1:2;const a=n>1?`These are ${t[1]}`:`This is ${art(t[0])} ${t[0]}`;return {q:'Escribe la frase',pic:toyPic(t,n),a:[a,a.replace(/^(These are) /,'$1 two ')]}})}}
 
+// Whose is this? / Whose are these? → It's Anna's. / They're Anna's. (ficha de la seño)
+const NAMES=['Anna','Hugo','Alice','Tony','Tom','Grace','Sam','Pat','Suzy'];
+const tag=nm=>`<div style="text-align:center;margin-top:4px"><span style="display:inline-block;background:var(--c-resp);color:#fff;font-weight:800;font-size:22px;border-radius:999px;padding:2px 18px">${nm}</span></div>`;
+// Cada juguete con un dueño al azar y 1 o varios dibujos
+const owned=ts=>{const ns=shuffle(NAMES);return ts.map((t,i)=>{const n=Math.random()<.5?1:ri(2,3);
+  return {t,n,nm:ns[i%ns.length],many:n>1,thing:n>1?t[1]:t[0],ask:n>1?'Whose are these':'Whose is this',it:n>1?"They're":"It's"}})};
+const ownPic=o=>toyPic(o.t,o.n)+tag(o.nm);
+// Respuestas válidas al escribir: con y sin apóstrofo, y la forma larga
+const alts=(it,nm)=>{const long=it==="It's"?'It is':'They are';const r=[`${it} ${nm}'s`,`${long} ${nm}'s`];return [...r,...r.map(x=>x.replace(/'/g,''))]};
+
+function whoseQuiz(ts){return {type:'quiz',title:"Elige: It's o They're",hint:"Whose is this? → It's… · Whose are these? → They're…",
+  items:owned(ts).map(o=>({q:`${o.ask} (${o.thing})?`,pic:ownPic(o),opts:[`It's ${o.nm}'s.`,`They're ${o.nm}'s.`],a:o.many?1:0,keep:true,two:true}))}}
+function whoseAsk(ts){return {type:'quiz',title:'¿Qué pregunta va con el dibujo?',hint:'Uno → Whose is this? · Más de uno → Whose are these?',
+  items:owned(ts).map(o=>({q:'Mira cuántos hay y elige',pic:toyPic(o.t,o.n),opts:['Whose is this?','Whose are these?'],a:o.many?1:0,keep:true,two:true}))}}
+function whoseName(ts){return {type:'write',title:'¿De quién es? Escribe el nombre',hint:"Escribe el nombre con 's al final. Ejemplo: Anna's.",
+  items:owned(ts).map(o=>({q:`${o.ask} (${o.thing})? ${o.it} …`,pic:ownPic(o),a:[`${o.nm}'s`,`${o.nm}s`]}))}}
+function whoseFill(ts,LV){const os=owned(ts);if(!os.some(o=>o.many))os[0]={...os[0],n:2,many:true,thing:os[0].t[1],ask:'Whose are these',it:"They're"};
+  if(!os.some(o=>!o.many))os[1]={...os[1],n:1,many:false,thing:os[1].t[0],ask:'Whose is this',it:"It's"};
+  return {type:'fill',small:true,title:'Completa las respuestas',hint:"It's → uno. They're → más de uno. Y el nombre con 's.",
+  lines:os.map(o=>`${o.ask} (${o.thing})? [${o.it}] [${o.nm}'s].`),extra:LV===1?[]:pick(NAMES.filter(n=>!os.some(o=>o.nm===n)),2).map(n=>n+"'s")}}
+function whoseWrite(ts){return {type:'write',title:'Mira el nombre y contesta',hint:"Escribe la frase entera: It's Sam's. o They're Sam's.",
+  items:owned(ts).map(o=>({q:`${o.ask} (${o.thing})?`,pic:ownPic(o),a:alts(o.it,o.nm)}))}}
+
 /* ---------- misiones ---------- */
 const MISSIONS=[
 {id:'n110',name:'Numbers 1-10',sub:'One, two, three…',color:'var(--c-loco)',build:LV=>numMission(1,10,LV)},
@@ -96,14 +120,18 @@ const MISSIONS=[
   return [plQuiz(pick(TOYS,k)),plMatch(pick(TOYS,LV===1?4:5)),plSort(pick(TOYS,LV===1?6:8)),plWrite(pick(TOYS,LV===1?3:5))]}},
 {id:'this',name:'This is / These are',sub:'Como en la ficha',color:'var(--c-dig)',build(LV){
   const k=LV===1?5:LV===3?9:7;
-  return [thisQuiz(pick(TOYS,k)),thisFill(pick(TOYS,LV===1?3:5)),thisCount(pick(TOYS,LV===1?3:5),LV),...(LV===1?[]:[thisSentence(pick(TOYS,LV===3?5:3))])]}}
+  return [thisQuiz(pick(TOYS,k)),thisFill(pick(TOYS,LV===1?3:5)),thisCount(pick(TOYS,LV===1?3:5),LV),...(LV===1?[]:[thisSentence(pick(TOYS,LV===3?5:3))])]}},
+{id:'whose',name:'Whose is this?',sub:"It's Anna's / They're…",color:'var(--c-circ)',build(LV){
+  const k=LV===1?5:LV===3?9:7;
+  return [whoseAsk(pick(TOYS,LV===1?4:5)),whoseQuiz(pick(TOYS,k)),whoseFill(pick(TOYS,LV===1?3:LV===3?5:4),LV),whoseName(pick(TOYS,LV===1?3:5)),
+    ...(LV===1?[]:[whoseWrite(pick(TOYS,LV===3?5:3))])]}}
 ];
 
 // Examen final: un poco de todo, como el examen del martes
 const FINAL={id:'final',name:'Examen final',sub:'Un poco de todo',color:'var(--c-final)',build(LV){
   const all=range(1,20),k=LV===1?3:LV===3?6:4;
   return [numListen(pick(all,k),1,20),numMatch(pick(all,LV===1?4:5)),numWrite(pick(all,k)),numDictation(pick(all,LV===1?2:3)),
-    toyListen(pick(TOYS,k)),thisQuiz(pick(TOYS,k+1)),thisCount(pick(TOYS,k),LV)]}};
+    toyListen(pick(TOYS,k)),thisQuiz(pick(TOYS,k+1)),thisCount(pick(TOYS,k),LV),whoseQuiz(pick(TOYS,k+1))]}};
 
 registrar({
   id:'ingles',
@@ -114,6 +142,8 @@ registrar({
   storeKey:'nael-ingles',
   icons:ICONS,
   missions:MISSIONS,
-  final:FINAL
+  final:FINAL,
+  // Orden en el código de animales: 'whose' va detrás del examen para que los códigos ya apuntados sigan valiendo
+  codeOrder:['n110','n1120','n120','toys','plural','this','final','whose']
 });
 })();
