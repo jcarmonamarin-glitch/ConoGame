@@ -33,7 +33,7 @@ Un código por asignatura y dificultad. Si un animal está mal, el control lo de
 base.html            Motor común: estilos, menús, actividades, sonido, estrellas y códigos
 temario/indice.js    Lista de asignaturas del menú principal
 temario/medio.js     Conocimiento del Medio · Tema 1 (el cuerpo humano)
-temario/lengua.js    Lengua (abecedario, orden alfabético, sílabas, sinónimos, antónimos). El examen final se genera al azar con palabras que no salen en las misiones
+temario/lengua.js    Lengua · Bloque 2: nombres comunes/propios e individuales/colectivos, el artículo (género, número, determinados e indeterminados) y palabras polisémicas. El examen final se genera al azar con palabras que no salen en las misiones. El bloque 1 (abecedario, sílabas, sinónimos, antónimos) está en el historial de git
 temario/mates.js     Matemáticas (numeración 0-99; las preguntas se generan al azar)
 temario/ingles.js    Inglés (números 1-20, juguetes, This is / These are, Whose is this? → It's / They're Anna's). Voz en inglés; preguntas al azar
 index.html, medio.html, lengua.html, matematicas.html, ingles.html   Redirecciones a base.html
