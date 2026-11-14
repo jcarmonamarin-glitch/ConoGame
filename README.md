@@ -34,7 +34,7 @@ base.html            Motor común: estilos, menús, actividades, sonido, estrell
 temario/indice.js    Lista de asignaturas del menú principal
 temario/medio.js     Conocimiento del Medio · Tema 1 (el cuerpo humano)
 temario/lengua.js    Lengua · Bloque 2: nombres comunes/propios e individuales/colectivos, el artículo (género, número, determinados e indeterminados) y palabras polisémicas. El examen final se genera al azar con palabras que no salen en las misiones. El bloque 1 (abecedario, sílabas, sinónimos, antónimos) está en el historial de git
-temario/mates.js     Matemáticas · Bloque 2: números hasta el 299 (centenas, decenas y unidades, descomponer, escribir con letras, recta de 10 en 10, comparar, anterior y posterior). Preguntas y examen final al azar; Fácil llega al 199. El bloque 1 (numeración 0-99) está en el historial de git
+temario/mates.js     Matemáticas · Bloque 2: números hasta el 299 (centenas, decenas y unidades, descomponer, escribir con letras, anterior y posterior). Preguntas y examen final al azar; Fácil llega al 199. El bloque 1 (numeración 0-99) está en el historial de git
 temario/ingles.js    Inglés (números 1-20, juguetes, This is / These are, Whose is this? → It's / They're Anna's). Voz en inglés; preguntas al azar
 index.html, medio.html, lengua.html, matematicas.html, ingles.html   Redirecciones a base.html
 ```

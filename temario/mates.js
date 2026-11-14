@@ -1,4 +1,5 @@
 // Matemáticas · Bloque 2: los números hasta el 299 (centenas, decenas y unidades)
+// Temas: centenas/decenas/unidades, descomponer, escribir con letras, anterior y posterior.
 // (Unidad 3 «Aprendo los números hasta el 199», págs. 54-55, y Unidad 4 «Aprendo los números hasta el 299», págs. 70-71).
 // El bloque 1 (numeración del 0 al 99) ya está examinado; está en el historial de git.
 // Contenido de la asignatura. Lo carga base.html con ?a=mates
@@ -9,8 +10,6 @@ const ICONS={
  cdu:'<rect x="2.5" y="5" width="7" height="14" rx="1"/><rect x="11" y="5" width="3" height="14" rx="1"/><rect x="15.5" y="5" width="3" height="14" rx="1"/><rect x="20" y="15" width="2.5" height="2.5" rx=".5"/>',
  descompon:'<path d="M12 3v5M12 8l-7 6M12 8l7 6M12 8v6"/><rect x="2" y="15" width="6" height="5" rx="1"/><rect x="9" y="15" width="6" height="5" rx="1"/><rect x="16" y="15" width="6" height="5" rx="1"/>',
  nombres:'<path d="M4 20l4-1 11-11-3-3L5 16z"/><path d="M14 6l3 3"/>',
- recta:'<path d="M2 15h20M5 12v6M12 12v6M19 12v6"/><path d="M12 3v5M9.5 5.5L12 8l2.5-2.5"/>',
- compara:'<path d="M10 6l-6 6 6 6M14 6l6 6-6 6"/>',
  cuenta:'<path d="M3 12h5M5 9l-3 3 3 3M21 12h-5M19 9l3 3-3 3"/><circle cx="12" cy="12" r="2.5"/>'
 };
 
@@ -45,7 +44,6 @@ function numW(n){if(n<100)return numW2(n);if(n===100)return 'cien';const c=Math.
 /* Respuestas válidas al escribir: «doscientas» también vale (el libro lo pone así al hablar de unidades) */
 const numAns=n=>{const w=numW(n);return n>=200?[w,w.replace('doscientos','doscientas')]:[w]};
 const cap=s=>s[0].toUpperCase()+s.slice(1);
-const CMP=['<','=','>'];
 
 /* ---------- dibujos (colores del libro: centenas verde, decenas rojo, unidades azul) ---------- */
 const CC='var(--p3)',CD='var(--c-circ)',CU='var(--p2)';
@@ -71,23 +69,6 @@ function splitSvg(n,hide){const [c,d,u]=cdu(n),parts=[[c*100,CC,'centenas',80],[
   parts.forEach(([v,col,lab,w],i)=>{s+=box(x,w,v,col,hide==='cdu'[i]);s+=`<text x="${x+w/2}" y="76" text-anchor="middle" style="fill:var(--muted);font:800 11px var(--f-body)">${lab}</text>`;x+=w;
     if(i<2){s+=`<text x="${x+13}" y="43" text-anchor="middle" style="fill:var(--ink);font:800 28px var(--f-display)">+</text>`;x+=26}});
   const W=x+4;return `<svg viewBox="0 0 ${W} 82" style="width:100%;max-width:${Math.round(W*1.25)}px" role="img" aria-label="${n} es ${c*100} más ${d*10} más ${u}">${s}</svg>`}
-function lineSvg(a,b,step,labels,arrow){const n=(b-a)/step,X=v=>24+(v-a)/step*(292/n);
-  let s=`<line x1="8" y1="54" x2="332" y2="54" style="stroke:var(--ink)" stroke-width="3" stroke-linecap="round"/>`;
-  for(let v=a;v<=b;v+=step){const big=labels.includes(v);s+=`<line x1="${X(v)}" x2="${X(v)}" y1="${big?44:47}" y2="${big?64:61}" style="stroke:var(--ink)" stroke-width="${big?3:2}"/>`;if(big)s+=`<text x="${X(v)}" y="86" text-anchor="middle" style="fill:var(--ink);font:800 16px var(--f-body)">${v}</text>`}
-  const A=X(arrow);s+=`<polygon points="${A-11},10 ${A+11},10 ${A},38" style="fill:var(--c-final)"/>`;
-  return `<svg viewBox="0 0 340 96" style="width:100%;max-width:440px" role="img" aria-label="Recta numérica">${s}</svg>`}
-/* Saltos con flechas (igual que en el bloque 1): gaps = posiciones con "?" (la primera es la que se pregunta) */
-function hopSvg(vals,stp,gaps,done){const n=vals.length,R=27,D=78,x0=34,cy=88,W=x0*2+(n-1)*D,X=i=>x0+i*D;
-  const col=stp>0?'var(--p3)':'var(--p1)',lab=(stp>0?'+':'−')+Math.abs(stp);let s='';
-  for(let i=0;i<n-1;i++){const sx=X(i)+R*.55,ex=X(i+1)-R*.55,ey=cy-R*.84,mx=(X(i)+X(i+1))/2,ctl=cy-R-46;
-    s+=`<path d="M${sx} ${ey} Q${mx} ${ctl} ${ex} ${ey}" fill="none" style="stroke:${col}" stroke-width="3" stroke-linecap="round"/>`;
-    const dx=ex-mx,dy=ey-ctl,L=Math.hypot(dx,dy),ux=dx/L,uy=dy/L,b=11,w=6.5;
-    s+=`<polygon points="${ex},${ey} ${ex-ux*b-uy*w},${ey-uy*b+ux*w} ${ex-ux*b+uy*w},${ey-uy*b-ux*w}" style="fill:${col}"/>`;
-    s+=`<text x="${mx}" y="${(ey+ctl)/2-8}" text-anchor="middle" style="fill:${col};font:800 19px var(--f-display)">${lab}</text>`}
-  vals.forEach((v,i)=>{const g=gaps.includes(i),ok=done&&done.includes(i),cur=g&&gaps[0]===i;
-    s+=`<circle cx="${X(i)}" cy="${cy}" r="${R}" style="fill:${cur?'var(--gap)':ok?'var(--ok-soft)':'var(--card)'};stroke:${cur||g?'var(--gap-line)':ok?'var(--ok)':'var(--ink)'}" stroke-width="3"${g?' stroke-dasharray="6 4"':''}/>`;
-    s+=`<text x="${X(i)}" y="${cy+7}" text-anchor="middle" style="fill:${g?'var(--gap-line)':ok?'var(--ok)':'var(--ink)'};font:800 19px var(--f-display)">${g?'?':v}</text>`});
-  return `<svg viewBox="0 0 ${W} ${cy+R+6}" style="width:100%;max-width:${Math.round(W*1.3)}px" role="img" aria-label="Saltos de ${Math.abs(stp)} en ${Math.abs(stp)}">${s}</svg>`}
 
 /* ---------- misiones ---------- */
 const MISSIONS=[
@@ -129,49 +110,6 @@ const MISSIONS=[
   {type:'quiz',title:'¿Qué número es?',hint:'Toca el nombre para oírlo.',items:qs.map(n=>({q:cap(numW(n)),opts:opts3(n,traps(n),100,299).map(String),a:0,row:true}))},
   {type:'quiz',title:'¿Cómo se escribe con letras?',items:ws.map(n=>({q:String(n),opts:opts3(n,traps(n),100,299).map(numW),a:0}))},
   {type:'write',title:'Escríbelo tú',hint:'Del 101 al 199 empieza por «ciento»: 125 es ciento veinticinco. El 100 es «cien».',items:wri}]}},
-{id:'recta',name:'Recta y saltos',sub:'De 10 en 10 y de 1 en 1',color:'var(--c-sent)',build(L){
-  const it=[];
-  const seen=[];for(let i=0,t=0;i<3&&t<50;t++){const two=L>1&&Math.random()<.6,a=two?200:100,b=two?290:200,v=a+ri(1,(b-a)/10-1)*10;if(seen.includes(v))continue;seen.push(v);i++;const lab=L===3?[a,b]:two?[a,250,b]:[a,150,b];
-    it.push({pic:lineSvg(a,b,10,lab.includes(v)?[a,b]:lab,v),q:'¿Qué número señala la flecha?',opts:opts3(v,[v+10,v-10,v+1]).map(String),a:0,row:true})}
-  for(let i=0;i<2;i++){const t=C(L)*100+ri(0,8)*10;let v;do{v=t+ri(1,9)}while(L!==3&&v===t+5);
-    it.push({pic:lineSvg(t,t+10,1,L===3?[t,t+10]:[t,t+5,t+10],v),q:'¿Qué número señala la flecha?',opts:opts3(v,[v+1,v-1,v+10]).map(String),a:0,row:true})}
-  // Completar la recta como en el libro: 100 110 120 [130] …
-  const line=(a,b)=>{const vs=[];for(let v=a;v<=b;v+=10)vs.push(v);const g=shuffle(vs.slice(1,-1)).slice(0,4);return vs.map(v=>g.includes(v)?`[${v}]`:String(v)).join('   ')};
-  const lines=L===1?[line(100,150),line(150,200)]:[line(100,190),line(200,290)].map(s=>s.split('   ')).map(p=>p.slice(0,5).join('   ')+'\n'+p.slice(5).join('   '));
-  const lns=lines.flatMap(s=>s.split('\n'));
-  // Series con flechas: de 10 en 10 y de 1 en 1, hacia delante y hacia atrás (pasando por el 109→110 o el 199→200)
-  const ser=[];shuffle([[10,1],[10,-1],[1,1],[1,-1]]).forEach(([k,sg],ci)=>{let a;
-    if(k===10)a=sg>0?C(L)*100+ri(0,5)*10+(Math.random()<.5?0:ri(1,9)):C(L)*100+ri(4,9)*10+(Math.random()<.5?0:ri(1,9));
-    else{const edge=L>1&&Math.random()<.5?ri(1,2)*100:C(L)*100+ri(1,9)*10;a=sg>0?edge-ri(1,3):edge+ri(1,3)-1;if(a<100)a=101}
-    if(a+sg*4*k>HI(L))a=HI(L)-4*k;if(a+sg*4*k<100)a=100+4*k;
-    const v=[0,1,2,3,4].map(i=>a+sg*i*k),g=L>1&&ci<2?shuffle([1,2,3,4]).slice(0,2).sort((x,y)=>x-y):[ri(1,4)];
-    const lab=`${sg>0?'Hacia delante':'Hacia atrás'}, de ${k} en ${k}. ¿Qué número va en el hueco azul?`;
-    g.forEach((p,gi)=>ser.push({pic:hopSvg(v,sg*k,g.slice(gi),g.slice(0,gi)),q:lab,opts:opts3(v[p],k===10?[v[p]+10,v[p]-10,v[p]+1]:[v[p]+sg,v[p]-sg,v[p]+2*sg]).map(String),a:0,row:true}))});
-  return [
-  {type:'quiz',title:'La recta numérica',hint:'Cuenta las rayitas desde el número que conoces.',items:it},
-  {type:'fill',small:true,title:'Completa la recta de 10 en 10',hint:'Cada número es 10 más que el de antes: 120, 130, 140…',lines:lns,extra:['105','300',L===1?'210':'195']},
-  {type:'quiz',title:'Sigue los saltos',hint:'Después del 199 viene el 200. Antes del 110 va el 109.',items:ser.slice(0,L===1?5:8)}]}},
-{id:'compara',name:'Mayor y menor',sub:'127 < 230',color:'var(--c-resp)',build(L){
-  const hi=HI(L),pairs=[],c=C(L);
-  pairs.push([ri(1,9)*10+ri(0,9),ri(100,hi)]);                          // 85 y 139: dos cifras contra tres
-  pairs.push([100+ri(0,9),ri(30,99)]);                                   // 103 y 64
-  if(L>1)pairs.push([100+ri(0,99),200+ri(0,99)]);                       // 127 y 230: mandan las centenas
-  {const d1=ri(0,4),d2=ri(5,9);pairs.push([c*100+d1*10+ri(0,9),c*100+d2*10+ri(0,9)])}  // 261 y 275
-  {const b=c*100+ri(0,9)*10,u1=ri(0,4);pairs.push([b+u1,b+u1+ri(1,5)])}  // 243 y 246
-  {let d,u;do{d=ri(1,9);u=ri(1,9)}while(d===u);pairs.push([c*100+d*10+u,c*100+u*10+d])}  // 219 y 291
-  {const v=ri(100,hi);pairs.push([v,v])};
-  if(L===3){pairs.push([c*100+ri(0,9),c*100+ri(1,9)*10]);pairs.push([ri(10,99),ri(100,hi)])}
-  const it=shuffle(pairs.map(p=>Math.random()<.5?p:[p[1],p[0]])).map(([x,y])=>({q:`${x}   ?   ${y}`,opts:CMP,a:x<y?0:x===y?1:2,keep:true,row:true}));
-  const mm=[];for(let i=0;i<4;i++){let x,y;
-    if(i===0){x=ri(20,99);y=ri(100,hi)}else if(i===1){x=c*100+ri(0,9);y=c*100+ri(1,9)*10}else{do{x=ri(100,hi);y=ri(100,hi)}while(x===y)}
-    const big=i%2===0;mm.push({q:big?'¿Cuál es mayor?':'¿Cuál es menor?',opts:(big?[Math.max(x,y),Math.min(x,y)]:[Math.min(x,y),Math.max(x,y)]).map(String),a:0,row:true})}
-  const n=L===3?5:4,sim=c*100+ri(0,7)*10;let ord=[ri(30,99)];while(ord.length<n){const v=ri(100,hi);if(!ord.includes(v))ord.push(v)}
-  let par=[];while(par.length<n){const v=sim+ri(0,19);if(!par.includes(v)&&v<=hi)par.push(v)}
-  return [
-  {type:'quiz',title:'¿Mayor, menor o igual?',hint:'Empieza por las centenas. Si son iguales, mira las decenas. Un número de dos cifras siempre es menor que uno de tres.',items:it},
-  {type:'quiz',title:'Elige el número',hint:'El 85 no tiene centenas: es más pequeño que cualquier número del 100 en adelante.',items:mm},
-  {type:'order',title:'De menor a mayor',hint:'Toca primero el más pequeño.',items:ord.sort((x,y)=>x-y).map(String)},
-  {type:'order',title:'De mayor a menor (¡muy parecidos!)',hint:'Toca primero el más grande.',items:par.sort((x,y)=>y-x).map(String)}]}},
 {id:'cuenta',name:'Cuenta hacia delante y atrás',sub:'Anterior y posterior',color:'var(--c-circ)',build(L){
   const hi=HI(L),edges=shuffle([100,110,120,109,119,129+ri(0,6)*10,199,200,L>1?209:150,L>1?210+ri(0,7)*10:170]).filter(v=>v<=hi&&v>100);
   const ns=[...edges.slice(0,3),...[ri(101,hi-1),ri(101,hi-1)]];
@@ -190,14 +128,14 @@ const MISSIONS=[
 const by=(id,L)=>MISSIONS.find(m=>m.id===id).build(L);
 /* El examen cambia cada vez: todo sale al azar. Usa el id final2 para empezar con 0 estrellas en este bloque. */
 const FINAL={id:'final2',name:'Examen final',sub:'Un poco de todo',color:'var(--c-final)',build(L){
-  const cd=by('cdu',L),de=by('descompon',L),no=by('nombres',L),re=by('recta',L),co=by('compara',L),cu=by('cuenta',L);
-  const q=shuffle([...cd[0].items.slice(0,2),...cd[1].items.slice(0,2),...cd[2].items.slice(0,1),...de[0].items.slice(0,3),...no[1].items.slice(0,2),...co[0].items.slice(0,3),...cu[0].items.slice(0,2),...re[0].items.slice(0,1)]);
+  const cd=by('cdu',L),de=by('descompon',L),no=by('nombres',L),cu=by('cuenta',L);
+  const q=shuffle([...cd[0].items.slice(0,3),...cd[1].items.slice(0,3),...cd[2].items.slice(0,2),...de[0].items.slice(0,4),...no[1].items.slice(0,2),...cu[0].items.slice(0,2)]);
   return [
    {type:'quiz',title:'Pregunta rápida',items:q.slice(0,8)},
    {...de[1],items:de[1].items.slice(0,4)},
    {...no[3],items:no[3].items.slice(0,3)},
-   re[1],
-   co[Math.random()<.5?2:3],
+   cu[3],
+   cu[Math.random()<.5?1:2],
    {type:'quiz',title:'Última ronda',items:q.slice(8,16)}];
 }};
 
