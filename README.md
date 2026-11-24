@@ -35,7 +35,7 @@ temario/indice.js    Lista de asignaturas del menú principal
 temario/medio.js     Conocimiento del Medio · Tema 1 (el cuerpo humano)
 temario/lengua.js    Lengua · Bloque 2: nombres comunes/propios e individuales/colectivos, el artículo (género, número, determinados e indeterminados) y palabras polisémicas. El examen final se genera al azar con palabras que no salen en las misiones. El bloque 1 (abecedario, sílabas, sinónimos, antónimos) está en el historial de git
 temario/mates.js     Matemáticas · Bloque 2: números hasta el 299 (centenas, decenas y unidades, descomponer, escribir con letras, anterior y posterior). Preguntas y examen final al azar; Fácil llega al 199. El bloque 1 (numeración 0-99) está en el historial de git
-temario/ingles.js    Inglés (números 1-20, juguetes, This is / These are, Whose is this? → It's / They're Anna's). Voz en inglés; preguntas al azar
+temario/ingles.js    Inglés · Unit 4: repaso de números 1-20, cosas de casa (phone, mirror, clock, sofa, mat, lamp), habitaciones, There's a… in the…, código secreto con números, Whose is this? It's mine / yours e Is that… yours? Yes, it is / No, they aren't. Voz en inglés; preguntas y casa al azar. El temario anterior (juguetes, This is / These are, It's Anna's) está en el historial de git
 index.html, medio.html, lengua.html, matematicas.html, ingles.html   Redirecciones a base.html
 ```
 
@@ -56,23 +56,23 @@ Cada misión es `{id, name, sub, color, acts:[...]}` o `{..., build(LV){ return 
 
 | `type` | Campos | Qué hace |
 |---|---|---|
-| `quiz` | `items:[{q, opts, a, keep?, row?, pic?}]` | Elegir la respuesta. `a` = índice correcto; `keep` no baraja las opciones; `row` las pone en fila; `pic` = SVG encima |
+| `quiz` | `items:[{q, opts, a, keep?, row?, pic?}]` | Elegir la respuesta. `a` = índice correcto; `keep` no baraja las opciones; `row` las pone en fila; `pic` = SVG encima. Una opción puede ser un dibujo `<svg>…</svg>` (su `<title>` es lo que sale en los fallos) |
 | `quiz` (V/F) | `tf:true, items:[{q, a:true/false}]` | Verdadero o falso |
 | `match` | `pairs:[[izq, der], ...]` | Unir con flechas |
 | `fill` | `lines:['Texto con [hueco]'], extra:[...], small?` | Rellenar huecos tocando palabras |
 | `order` | `items:[...]` (en el orden correcto) | Tocar en orden |
 | `sort` | `buckets:[...], items:[[palabra, caja], ...]` | Clasificar en cajas |
-| `build` | `items:[{e:'🐸', p:['r','a','n','a']}]` | Formar palabras con letras o sílabas |
+| `build` | `items:[{e:'🐸', p:['r','a','n','a'], pic?}]` | Formar palabras con letras o sílabas. Con `pic`, enseña ese dibujo en vez de `e` |
 | `label` | `diagram, opts, points:[[x,y,'Nombre']]` | Nombrar los números de un dibujo |
 | `grid` | `mode:'fill', blanks:[...]` o `mode:'pick', test:n=>...` | Tabla del 0 al 99 |
 | `write` | `items:[{q, a, big?, pic?, say?}]` | Escribir con el teclado. `a` puede ser una lista de respuestas válidas; no importan mayúsculas ni espacios. En Fácil sale la primera letra |
 | `pulse` | — | Cronómetro de 1 minuto para el pulso |
 
-Todas aceptan `title` e `hint` (la pista se oculta en Difícil).
+Todas aceptan `title`, `hint` (la pista se oculta en Difícil) y `pic` (un dibujo fijo encima de toda la actividad, como la casa de Inglés).
 
 En `quiz`, `say:'seven'` lee esa palabra en voz alta al salir la pregunta, en el idioma de la asignatura (`registrar({lang:'en-GB', ...})`), con un botón para repetirla.
 
-Una asignatura puede fijar el orden de los temas en el código con `codeOrder:[ids]` (Inglés lo usa para que los códigos viejos sigan valiendo al añadir temas).
+Una asignatura puede fijar el orden de los temas en el código con `codeOrder:[ids]`, para que los códigos viejos sigan valiendo al añadir temas.
 
 El código de animales guarda la asignatura en 2 bits: caben 4 asignaturas como mucho (Inglés es la cuarta).
 

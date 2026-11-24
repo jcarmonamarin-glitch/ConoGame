@@ -210,6 +210,10 @@ svg.lines{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;o
 .small .gap{min-width:1.8em;padding:0 4px}
 a.round{text-decoration:none}
 .pic svg{max-width:100%;height:auto}
+.opt.picopt{padding:8px}.opt.picopt svg{display:block;margin:auto;width:clamp(56px,17vw,84px);height:auto}
+.actpic{margin:0 0 10px}
+.diagram svg.casa{width:min(340px,86vw);max-height:44vh}.diagram svg.cosa{width:min(150px,40vw)}
+.opt.picopt svg.mini{width:100%;max-width:150px}
 .hund{display:grid;grid-template-columns:repeat(10,minmax(0,1fr));gap:3px;width:100%;max-width:460px;margin:0 auto}
 .hc{aspect-ratio:1;border:2px solid var(--line);background:var(--card);color:var(--ink);border-radius:7px;font-family:var(--f-body);font-weight:800;font-size:clamp(12px,3.7vw,18px);padding:0;display:grid;place-items:center;font-variant-numeric:tabular-nums}
 .hc.blank{background:var(--gap);border:2px dashed var(--gap-line);color:var(--gap-line)}
@@ -286,7 +290,7 @@ a.round{text-decoration:none}
 <body>
 <canvas id="fx"></canvas>
 <main id="app"></main>
-<script src="temario/indice.js?v=202611141900"></script>
+<script src="temario/indice.js?v=202611241900"></script>
 <script>
 /* ======================================================================
    Motor de los juegos de repaso (empezaron siendo los de Nael). Todo lo común vive aquí.
@@ -511,6 +515,7 @@ function render(){
   if(canSpeak)head.append(h('button',{class:'round','aria-label':'Escuchar',onclick(){speak(a.title+'. '+(a.hint||''))},html:SND_ON}));
   panel.append(head);
   if(a.hint)panel.append(h('p',{class:'hint'},a.hint));
+  if(a.pic)panel.append(h('div',{class:'diagram pic actpic',html:a.pic}));
   const body=h('div');panel.append(body);
   const bar=h('div',{class:'nextbar',hidden:''});
   app.append(panel,bar);
@@ -631,6 +636,9 @@ function actSort(a,box,done){
       if(k<q.length){now.textContent=q[k][0];pop(now)}else{now.textContent='¡Todo colocado!';done()}}}},h('b',{},name),chips);bs.append(b)});
   box.append(h('div',{class:'sents'},now,count,bs));
 }
+// Una opción puede ser un dibujo SVG: '<svg ...><title>lamp</title>...</svg>'. El <title> es lo que sale en el repaso de fallos
+const isPicOpt=c=>typeof c==='string'&&c.trim().startsWith('<svg');
+const optLabel=c=>isPicOpt(c)?((c.match(/<title>([^<]*)<\/title>/)||[])[1]||'dibujo'):c;
 function quizEngine(items,box,done,opts){
   let k=0;const q=h('p',{class:'qtext',style:'cursor:pointer'});const os=h('div',{class:'opts'}),pic=h('div',{class:'diagram pic',hidden:''});q.onclick=()=>speak(q.textContent);
   const sayB=h('button',{class:'saybtn',hidden:'',html:SND_ON+'<span>Escuchar otra vez</span>'});
@@ -644,8 +652,8 @@ function quizEngine(items,box,done,opts){
     order.forEach(i=>{const b=h('button',{class:'opt',onclick(){if(locked)return;locked=true;
       if(i===ans){b.classList.add('ok');pop(b);good();if(opts&&opts.onRight)opts.onRight(k);setTimeout(nx,750)}
       else{bad();shake(b);b.classList.add('wrong');os.querySelectorAll('.opt').forEach(x=>{if(+x.dataset.i===ans)x.classList.add('right')});
-        fail({q:it.q+(it.say?` (sonaba: «${it.say}»)`:''),pic:it.pic||(opts&&opts.picOf?opts.picOf():''),bad:choices[i],ok:choices[ans]});
-        if(opts&&opts.onWrong)opts.onWrong(k);setTimeout(nx,1800)}}},choices[i]);b.dataset.i=i;os.append(b)})}
+        fail({q:it.q+(it.say?` (sonaba: «${it.say}»)`:''),pic:it.pic||(opts&&opts.picOf?opts.picOf():''),bad:optLabel(choices[i]),ok:optLabel(choices[ans])});
+        if(opts&&opts.onWrong)opts.onWrong(k);setTimeout(nx,1800)}}},isPicOpt(choices[i])?null:choices[i]);if(isPicOpt(choices[i])){b.innerHTML=choices[i];b.classList.add('picopt')}b.dataset.i=i;os.append(b)})}
   show();
 }
 function actQuiz(a,box,done){
@@ -691,7 +699,7 @@ function actBuild(a,box,done){
         slots[n].textContent=want;slots[n].classList.add('wrong');if(tb){tb.classList.add('used');tb.disabled=true}
         fail({q:`Forma la palabra ${it.e||''} (${P.join('')}). Hueco ${n+1}:`,bad:o.t,ok:want});n++;
         if(n===P.length){sayT(P.join(''));setTimeout(()=>{k++;k<a.items.length?show():done()},1400)}}};tiles.append(b)});
-    wrap.append(h('div',{class:'bpic'},it.e),h('div',{class:'slots'},...slots),tiles,h('div',{class:'count'},`${k+1} de ${a.items.length}`));
+    wrap.append(it.pic?h('div',{class:'diagram pic',html:it.pic}):h('div',{class:'bpic'},it.e),h('div',{class:'slots'},...slots),tiles,h('div',{class:'count'},`${k+1} de ${a.items.length}`));
   }
   show();
 }
@@ -820,7 +828,7 @@ function boot(){
   setTimeout(syncNow,300);
   const s=ASIG&&SUBJECTS.find(x=>x.id===ASIG);
   if(!s){hub();return}
-  const el=document.createElement('script');el.src=`temario/${s.file}?v=202611141900`;
+  const el=document.createElement('script');el.src=`temario/${s.file}?v=202611241900`;
   el.onerror=()=>{app.innerHTML='';app.append(h('p',{class:'qtext'},'No se ha podido cargar este temario.'),h('a',{class:'back',href:'base.html'},'Volver al inicio'))};
   document.body.append(el);
 }
