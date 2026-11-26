@@ -1,5 +1,8 @@
-// Inglés · Unit 4 (la casa: phone, mirror, clock, sofa, mat, lamp; bedroom, kitchen, bathroom, living room;
-// There's a… in the…; Whose is this? It's mine / yours; Is that… yours? Yes, it is…) y repaso de los números del 1 al 20.
+// Inglés · Unit 4 (la casa: phone, mirror, clock, sofa, mat, lamp, bed, door, window, bath, fridge; bedroom, kitchen,
+// bathroom, living room; There's a… in the…; Whose is this? It's mine / yours; Is that… yours? Yes, it is…;
+// deletrear palabras y nombres) y repaso de los números del 1 al 20.
+// Ajustado a la hoja «Repaso Unit 4» de la profe (noviembre 2026): completar letras, escribir los objetos,
+// números escritos 1-20, deletrear nombres, Is that / Are those… yours? con ✓ / ✗ y It's mine / yours con cosas de casa.
 // El temario anterior (juguetes, This is / These are, Whose is this? It's Anna's) está en el historial de git.
 // Contenido de la asignatura. Lo carga base.html con ?a=ingles
 // Las misiones se generan al azar en cada partida: build(LV) recibe el nivel (1 Fácil, 2 Normal, 3 Difícil).
@@ -59,20 +62,33 @@ const S=(body,w,title)=>`<svg viewBox="0 0 64 64" class="cosa"${w?` width="${w}"
 const KEYS=[27,32,37].flatMap(y=>[26,30.5,35].map(x=>`<rect x="${x}" y="${y}" width="3.5" height="3" rx=".6" fill="#f08a5d" stroke-width="1"/>`)).join('');
 const TICKS=[...Array(12)].map((_,i)=>{const a=i*Math.PI/6;return `<circle cx="${(32+17*Math.sin(a)).toFixed(1)}" cy="${(32-17*Math.cos(a)).toFixed(1)}" r="${i%3?1:1.7}" fill="#333" stroke="none"/>`}).join('');
 const FRINGE=[...[8,13,18,23,28,33,38,43,48,53].map(x=>`<path d="M${x} 46l-1 6"/>`),...[16,21,26,31,36,41,46].map(x=>`<path d="M${x} 22l1-5"/>`)].join('').replace(/"\/>/g,'" stroke="#c98b4a" stroke-width="1.8"/>');
+const BED=`<rect x="4" y="18" width="7" height="38" rx="2" fill="#c98b4a"/><rect x="9" y="34" width="51" height="13" rx="2" fill="#fff"/><rect x="24" y="31" width="36" height="16" rx="3" fill="#9b6bff"/><rect x="12" y="28" width="13" height="8" rx="3" fill="#fff"/><path d="M10 47v9M58 47v9"/>`;
+const BATH=`<path d="M54 30V14h-8"/><circle cx="46" cy="18" r="1.5" fill="#333"/><path d="M4 30h56v8a12 12 0 0 1-12 12H16A12 12 0 0 1 4 38z" fill="#fff"/><path d="M8 34h48" stroke="#7cc6f5" stroke-width="4"/><path d="M15 50l-3 6M49 50l3 6"/>`;
+const FRIDGE=`<rect x="16" y="4" width="32" height="55" rx="4" fill="#e8eef3"/><path d="M16 24h32"/><path d="M42 11v7M42 30v12" stroke-width="3.5"/><path d="M21 59v3M43 59v3"/>`;
+const DOOR=`<rect x="14" y="4" width="36" height="55" rx="2" fill="#c98b4a"/><rect x="19" y="9" width="26" height="19" rx="1" fill="#e0a868"/><rect x="19" y="35" width="26" height="19" rx="1" fill="#e0a868"/><circle cx="43" cy="31.5" r="2.5" fill="#ffcf4a"/><path d="M6 60h52"/>`;
+const WIN=`<rect x="12" y="9" width="40" height="40" fill="#bfe3f5"/><path d="M32 9v40M12 29h40"/><rect x="12" y="9" width="40" height="40" stroke-width="3"/><path d="M5 5h54" stroke-width="3"/><path d="M8 5c5 14 2 30 7 45H7z" fill="#f08a5d"/><path d="M56 5c-5 14-2 30-7 45h8z" fill="#f08a5d"/><rect x="8" y="49" width="48" height="5" rx="1" fill="#fff"/>`;
 // Las cosas de la ficha. wall: va colgada en la pared (en el dibujo de la casa sale arriba)
 const TH=[
  {w:'phone',es:'teléfono',d:`<rect x="10" y="46" width="44" height="11" rx="4" fill="#4a90d9"/><path d="M38 13V4"/><rect x="22" y="12" width="20" height="38" rx="5" fill="#b8c2cc"/><rect x="26" y="16" width="12" height="7" rx="1" fill="#d6f0c8"/>${KEYS}`},
  {w:'mirror',es:'espejo',wall:true,d:`<circle cx="32" cy="6" r="3" fill="#c98b4a"/><rect x="12" y="9" width="40" height="49" rx="3" fill="#c98b4a"/><rect x="18" y="15" width="28" height="37" fill="#bfe3f5"/><path d="M24 30l12-12M25 42l18-18" stroke="#fff" stroke-width="3"/>`},
  {w:'clock',es:'reloj',wall:true,d:`<circle cx="32" cy="32" r="27" fill="#4a90d9"/><circle cx="32" cy="32" r="21" fill="#fff"/>${TICKS}<path d="M32 32V19M32 32l8 6" stroke-width="3"/><circle cx="32" cy="32" r="2.5" fill="#f08a5d"/>`},
  {w:'sofa',es:'sofá',d:`<rect x="13" y="14" width="38" height="24" rx="6" fill="#4a90d9"/><rect x="14" y="33" width="36" height="12" rx="3" fill="#7db4ee"/><rect x="5" y="26" width="13" height="24" rx="5" fill="#f08a5d"/><rect x="46" y="26" width="13" height="24" rx="5" fill="#f08a5d"/><rect x="16" y="44" width="32" height="6" fill="#f08a5d"/><path d="M10 50v6M54 50v6"/>`},
- {w:'mat',es:'alfombrilla',d:`${FRINGE}<polygon points="14,22 50,22 58,46 6,46" fill="#f08a5d"/><polygon points="19,26 45,26 50,42 14,42" fill="#4a90d9"/><path d="M18 31h28M16 37h32" stroke="#fff" stroke-width="2"/>`},
- {w:'lamp',es:'lámpara',d:`<rect x="29" y="30" width="6" height="21" fill="#f08a5d"/><path d="M45 30v8"/><circle cx="45" cy="40" r="2" fill="#f08a5d"/><path d="M21 8h22l9 22H12z" fill="#ffcf4a"/><path d="M27 9l-4 20M37 9l4 20" stroke-width="1.5"/><rect x="18" y="50" width="28" height="7" rx="3.5" fill="#4a90d9"/>`}
+ {w:'mat',f:true,es:'alfombrilla',d:`${FRINGE}<polygon points="14,22 50,22 58,46 6,46" fill="#f08a5d"/><polygon points="19,26 45,26 50,42 14,42" fill="#4a90d9"/><path d="M18 31h28M16 37h32" stroke="#fff" stroke-width="2"/>`},
+ {w:'lamp',f:true,es:'lámpara',d:`<rect x="29" y="30" width="6" height="21" fill="#f08a5d"/><path d="M45 30v8"/><circle cx="45" cy="40" r="2" fill="#f08a5d"/><path d="M21 8h22l9 22H12z" fill="#ffcf4a"/><path d="M27 9l-4 20M37 9l4 20" stroke-width="1.5"/><rect x="18" y="50" width="28" height="7" rx="3.5" fill="#4a90d9"/>`}
 ];
+// Más cosas de casa de la hoja de repaso. No van en el dibujo de la casa (ahí solo caben las 6 de arriba)
+const TX=[
+ {w:'bed',es:'cama',f:true,d:BED},
+ {w:'door',es:'puerta',f:true,d:DOOR},
+ {w:'window',es:'ventana',f:true,d:WIN},
+ {w:'bath',es:'bañera',f:true,d:BATH},
+ {w:'fridge',es:'frigorífico',d:FRIDGE}
+];
+const VOC=[...TH,...TX];
+const thBy=w=>VOC.find(t=>t.w===w);
 const thPic=t=>S(t.d,0,t.w);
 const thOpt=t=>S(t.d,0,t.w);
 // Muebles fijos de cada habitación, para reconocerla: cama, bañera, fregadero y tele
-const BED=`<rect x="4" y="18" width="7" height="38" rx="2" fill="#c98b4a"/><rect x="9" y="34" width="51" height="13" rx="2" fill="#fff"/><rect x="24" y="31" width="36" height="16" rx="3" fill="#9b6bff"/><rect x="12" y="28" width="13" height="8" rx="3" fill="#fff"/><path d="M10 47v9M58 47v9"/>`;
-const BATH=`<path d="M54 30V14h-8"/><circle cx="46" cy="18" r="1.5" fill="#333"/><path d="M4 30h56v8a12 12 0 0 1-12 12H16A12 12 0 0 1 4 38z" fill="#fff"/><path d="M8 34h48" stroke="#7cc6f5" stroke-width="4"/><path d="M15 50l-3 6M49 50l3 6"/>`;
 const SINK=`<path d="M30 23V12h8v4" fill="none"/><rect x="2" y="22" width="60" height="6" fill="#b8c2cc"/><rect x="5" y="28" width="54" height="29" fill="#f6e3c5"/><rect x="9" y="32" width="20" height="21" rx="1"/><rect x="35" y="32" width="20" height="21" rx="1"/><circle cx="26" cy="42" r="1.3" fill="#333"/><circle cx="38" cy="42" r="1.3" fill="#333"/>`;
 const TV=`<rect x="10" y="8" width="44" height="30" rx="3" fill="#444"/><rect x="14" y="12" width="36" height="22" fill="#7cc6f5"/><path d="M32 38v6"/><rect x="8" y="44" width="48" height="6" fill="#c98b4a"/><path d="M12 50v7M52 50v7"/>`;
 const RM=[
@@ -103,10 +119,18 @@ const roomAns=r=>[r.w,`the ${r.w}`,`in the ${r.w}`].flatMap(x=>[x,x.replace('liv
 /* ---------- Things at home ---------- */
 function thMatch(ts){return {type:'match',title:'Une cada palabra con su significado',hint:'Lee la palabra en inglés y busca cómo se dice en español.',pairs:ts.map(t=>[t.w,t.es])}}
 function thListen(ts){return {type:'quiz',title:hear?'Escucha y elige el dibujo':'Lee y elige el dibujo',hint:hear?'Si no lo oyes bien, toca «Escuchar otra vez».':'',
-  items:ts.map(t=>({q:hear?'¿Qué has oído?':`«${t.w}»`,say:hear?t.w:undefined,opts:[t,...pick(TH.filter(x=>x!==t),2)].map(thOpt),a:0,row:true}))}}
-function thRead(ts){return {type:'quiz',title:'¿Cómo se llama en inglés?',items:ts.map(t=>({q:'What is it? ¿Qué es?',pic:thPic(t),opts:[t,...pick(TH.filter(x=>x!==t),2)].map(x=>x.w),a:0}))}}
+  items:ts.map(t=>({q:hear?'¿Qué has oído?':`«${t.w}»`,say:hear?t.w:undefined,opts:[t,...pick(VOC.filter(x=>x!==t),2)].map(thOpt),a:0,row:true}))}}
+function thRead(ts){return {type:'quiz',title:'¿Cómo se llama en inglés?',items:ts.map(t=>({q:'What is it? ¿Qué es?',pic:thPic(t),opts:[t,...pick(VOC.filter(x=>x!==t),2)].map(x=>x.w),a:0}))}}
 function thBuild(ts){return {type:'build',title:'Forma la palabra',hint:'Toca las letras en orden.',items:ts.map(t=>({e:t.es,pic:thPic(t),p:t.w.split('')}))}}
 function thWrite(ts){return {type:'write',title:'Escribe el nombre en inglés',items:ts.map(t=>({q:'What is it? ¿Qué es?',pic:thPic(t),a:t.w}))}}
+// Como el ejercicio 1 de la profe: «s _ f a», ¿qué letra falta?
+const VOW='aeiou';
+function thGap(ts){return {type:'quiz',title:'¿Qué letra falta?',hint:'Mira el dibujo y di la palabra en voz alta.',
+  items:ts.map(t=>{const vs=[...t.w].map((c,i)=>i).filter(i=>VOW.includes(t.w[i])),i=vs[ri(0,vs.length-1)],l=t.w[i];
+    return {q:[...t.w].map((c,j)=>j===i?'_':c).join(' '),pic:thPic(t),opts:[l,...pick([...VOW].filter(x=>x!==l),2)],a:0,row:true}})}}
+// Como «Look and complete the words»: faltan varias letras
+function thHoles(ts,LV){return {type:'fill',small:true,title:'Completa las letras que faltan',hint:'Di la palabra en voz alta y piensa qué letra falta.',
+  lines:ts.map(t=>`${t.es} → ${holes(t.w,LV)}`),extra:LV===1?[]:pick(['a','e','i','o','u','r'],2)}}
 function thSpell(ts){return {type:'write',title:'Escucha y escribe',hint:'Escribe la palabra que oyes.',items:ts.map(t=>({q:'Escribe lo que oyes',say:t.w,a:t.w}))}}
 
 /* ---------- Rooms ---------- */
@@ -146,7 +170,7 @@ function readText(){const bath=RM[1],pl={bathroom:[TH[1],TH[4]]};
   extra:['sofa','lamp']}}
 
 /* ---------- Secret code: los números dicen las letras (como el ejercicio 3 del libro) ---------- */
-const CODEW=[...TH.map(t=>t.w),'bath','bedroom','kitchen'];
+const CODEW=[...VOC.map(t=>t.w),'bedroom','kitchen'];
 function codeKey(words){const ls=[...new Set(words.join('').split(''))];const ns=pick(range(1,20),ls.length);const key=ls.map((l,i)=>[ns[i],l]).sort((a,b)=>a[0]-b[0]);
   return {key,num:Object.fromEntries(key.map(([n,l])=>[l,n])),let:Object.fromEntries(key)}}
 const keyHtml=K=>`<div style="display:flex;flex-wrap:wrap;gap:6px 16px;justify-content:center;font-weight:800;font-size:18px;max-width:440px">${K.key.map(([n,l])=>`<span style="white-space:nowrap">${N[n]} → <b style="color:var(--c-resp);font-size:22px">${l}</b></span>`).join('')}</div>`;
@@ -160,16 +184,39 @@ function codeBuild(k){return {type:'build',title:'Descifra la palabra secreta',h
 function codeWrite(k){return {type:'write',title:'Descifra y escribe la palabra',hint:'Cada número es una letra. Escribe la palabra entera.',
   items:pick(CODEW,k).map(w=>{const K=codeKey([w]);return {q:'¿Qué palabra es?',pic:codePic(w,K),a:w}})}}
 
+/* ---------- Deletrear (Spelling): letras sueltas, palabras y nombres ---------- */
+// Cómo suena cada letra en inglés (si el dispositivo no habla, se enseña esto)
+const PRON={A:'ei',B:'bi',C:'si',D:'di',E:'i',F:'ef',G:'yi',H:'eich',I:'ai',J:'yei',K:'kei',L:'el',M:'em',N:'en',O:'ou',P:'pi',Q:'kiu',R:'ar',S:'es',T:'ti',U:'iu',V:'vi',W:'dabliu',X:'ex',Y:'uai',Z:'sed'};
+// Letras que los niños confunden al oírlas en inglés
+const LGROUPS=[['A','E','I'],['E','I','Y'],['G','J','H'],['U','W','Y'],['A','R','H'],['K','Q','C'],['B','P','V'],['M','N','L'],['O','U','A']];
+const NAMES=['Anna','Tom','Ben','Lucy','Sam','Kim','Max','Nael','Peter','Sue'];
+const spellOf=w=>w.toUpperCase().replace(/[^A-Z]/g,'').split('').join(', ');
+// El nombre del niño que juega (si son letras normales) también sale para deletrear
+function myName(){try{const n=(typeof PLAYER==='string'?PLAYER:'').trim();return /^[a-z]{2,10}$/i.test(n)?n[0].toUpperCase()+n.slice(1).toLowerCase():''}catch(e){return ''}}
+function spellPool(){const me=myName();return {names:[...new Set([...(me?[me]:[]),...NAMES])],words:VOC.map(t=>t.w)}}
+function letterListen(k){return {type:'quiz',title:hear?'Escucha y elige la letra':'¿Qué letra es?',hint:'En inglés: A se dice «ei», E se dice «i», I se dice «ai».',
+  items:[...Array(k)].map(()=>{const g=LGROUPS[ri(0,LGROUPS.length-1)],L=g[ri(0,2)];
+    return {q:hear?'¿Qué letra has oído?':`Se dice «${PRON[L]}»`,say:hear?L:undefined,opts:[L,...g.filter(x=>x!==L)],a:0,row:true}})}}
+function spellQuiz(k){const P=spellPool(),me=myName();
+  const ws=shuffle([...pick(P.names,Math.ceil(k/2)),...pick(P.words,k)]).slice(0,k);if(me&&!ws.includes(me))ws[0]=me;
+  return {type:'quiz',title:hear?'Escucha cómo se deletrea':'Lee el deletreo',hint:'Escucha letra a letra y piensa qué palabra es.',
+  items:shuffle(ws).map(w=>{const pool=P.names.includes(w)?P.names:P.words;
+    return {q:hear?'¿Qué palabra han deletreado?':spellOf(w),say:hear?spellOf(w):undefined,opts:[w,...pick(pool.filter(x=>x!==w),2)],a:0}})}}
+function spellWrite(k){const P=spellPool(),me=myName();
+  const ws=shuffle([...pick(P.names,Math.ceil(k/2)),...pick(P.words,k)]).slice(0,k);if(me&&!ws.includes(me))ws[0]=me;
+  return {type:'write',title:'Escucha el deletreo y escribe',hint:'Escribe la palabra o el nombre que te deletrean.',
+  items:shuffle(ws).map(w=>({q:hear?'Escribe lo que te deletrean':`Deletreo: ${spellOf(w)}`,say:hear?spellOf(w):undefined,a:w}))}}
+
 /* ---------- Whose is this? It's mine / It's yours ---------- */
 // 🙋 = es mío (el que contesta) · 👉 = es tuyo (el que pregunta)
-const OBJ=[{w:'pencil',e:'✏️',es:'lápiz',f:false},{w:'bag',e:'🎒',es:'mochila',f:true},{w:'book',e:'📕',es:'libro',f:false},{w:'ruler',e:'📏',es:'regla',f:true}];
+// Las cosas de la ficha de la profe: sofa, mat, phone, lamp, bed, bath, fridge
+const OBJ=['sofa','mat','phone','lamp','bed','bath','fridge'].map(thBy);
 const chip=(txt,bg)=>`<div style="text-align:center;margin-top:6px"><span style="display:inline-block;background:${bg};color:#fff;font-weight:800;font-size:22px;border-radius:999px;padding:3px 18px">${txt}</span></div>`;
 const owners=os=>os.map(o=>{const me=Math.random()<.5;return {...o,me,ans:me?'mine':'yours',cue:me?`🙋 Es ${o.f?'mía':'mío'}`:`👉 Es ${o.f?'tuya':'tuyo'}`}});
-const mPic=o=>emo(o.e,1)+chip(o.cue,o.me?'var(--c-resp)':'var(--c-circ)');
+const mPic=o=>thPic(o)+chip(o.cue,o.me?'var(--c-resp)':'var(--c-circ)');
 const objs=k=>{const r=[];while(r.length<k)r.push(...shuffle(OBJ));return r.slice(0,k)};
-function mineMatch(){return {type:'match',title:'Une cada cosa con su nombre',pairs:OBJ.map(o=>[o.e+' \u200b',o.w])}}
-function mineObj(k){return {type:'quiz',title:'Whose is this…? ¿Qué es?',hint:'pencil, bag, book o ruler.',
-  items:objs(k).map(o=>({q:'Whose is this …?',pic:emo(o.e,1),opts:[o,...pick(OBJ.filter(x=>x!==o),2)].map(x=>x.w),a:0}))}}
+function mineObj(k){return {type:'quiz',title:'Whose is this…? ¿Qué es?',hint:'Mira el dibujo y elige su nombre.',
+  items:objs(k).map(o=>({q:'Whose is this …?',pic:thPic(o),opts:[o,...pick(OBJ.filter(x=>x!==o),2)].map(x=>x.w),a:0}))}}
 function mineMean(){return {type:'quiz',title:'¿Qué significa?',items:shuffle([
   {q:'«mine» significa…',opts:['mío / mía','tuyo / tuya'],a:0,keep:true,two:true},
   {q:'«yours» significa…',opts:['mío / mía','tuyo / tuya'],a:1,keep:true,two:true},
@@ -180,7 +227,7 @@ function mineQuiz(k){return {type:'quiz',title:"Contesta: It's mine o It's yours
 const both=os=>{os[0]={...os[0],me:true,ans:'mine'};os[1]={...os[1],me:false,ans:'yours'};return shuffle(os)};
 function mineFill(k,LV){const os=both(owners(objs(k)));
   return {type:'fill',small:true,title:'Completa las conversaciones',hint:'🙋 = mío/mía → mine · 👉 = tuyo/tuya → yours.',
-  lines:os.map(o=>`${o.e} Whose is this [${o.w}]? ${o.me?'🙋':'👉'} It's [${o.ans}].`),extra:LV===1?[]:pick(OBJ.filter(o=>!os.some(x=>x.w===o.w)).map(o=>o.w),1)}}
+  lines:os.map(o=>`Whose is this [${o.w}]? ${o.me?'🙋':'👉'} It's [${o.ans}].`),extra:LV===1?[]:pick(OBJ.filter(o=>!os.some(x=>x.w===o.w)).map(o=>o.w),1)}}
 function mineWrite(k){return {type:'write',title:'Contesta con la frase entera',hint:"It's mine. o It's yours.",
   items:owners(objs(k)).map(o=>({q:`Whose is this ${o.w}?`,pic:mPic(o),a:[`It's ${o.ans}`,`It is ${o.ans}`,`Its ${o.ans}`]}))}}
 
@@ -197,8 +244,19 @@ function person(){const its=shuffle(THINGS2.filter(t=>!t.pl)),pls=shuffle(THINGS
   const pic=`<div style="text-align:center"><div style="font-size:64px;line-height:1.1">${p}</div><div style="font-weight:800;font-size:15px;opacity:.75;margin:2px 0">Sus cosas:</div><div style="display:inline-flex;gap:14px;font-size:40px;background:var(--card);border:3px solid var(--line);border-radius:16px;padding:4px 16px">${shuffle(has).map(t=>`<span>${t.e}</span>`).join('')}</div></div>`;
   return {has,pic,qs:k=>{const not=shuffle(THINGS2.filter(t=>!has.includes(t)));const yes=shuffle(has);const r=[];
     for(let i=0;r.length<k&&i<8;i++){const t=i%2?not[i>>1]:yes[i>>1];if(t)r.push({t,yes:has.includes(t)})}return shuffle(r)}}}
+// Las de las fichas de la profe. pl = más de uno
+const twice=p=>`<div style="display:flex;justify-content:center;gap:10px">${p}${p}</div>`;
+const MARK=[{w:'phone',p:emo('☎️',1)},{w:'camera',p:emo('📷',1)},{w:'socks',pl:true,p:emo('🧦',1)},{w:'books',pl:true,p:emo('📚',1)},
+  {w:'dog',p:emo('🐕',1)},{w:'kite',p:emo('🪁',1)},{w:'lamp',p:thPic(thBy('lamp'))},{w:'sofas',pl:true,p:twice(thPic(thBy('sofa')))},
+  {w:'fridge',p:thPic(thBy('fridge'))},{w:'beds',pl:true,p:twice(thPic(thBy('bed')))},{w:'mirror',p:thPic(thBy('mirror'))},{w:'clocks',pl:true,p:twice(thPic(thBy('clock')))}];
+const markPic=(m,yes)=>m.p+`<div style="text-align:center;font-size:48px;font-weight:900;line-height:1;color:${yes?'var(--ok)':'var(--bad)'}">${yes?'✓':'✗'}</div>`;
+// «Look and circle»: ✓ = sí es suyo · ✗ = no es suyo
+function markQuiz(k,LV){const r=ri(0,1);
+  return {type:'quiz',title:'Mira la marca y contesta',hint:'✓ → Yes · ✗ → No. Uno → it is · Más de uno → they are.',
+  items:pick(MARK,k).map((m,i)=>{const yes=(i+r)%2===0,ok=ansY(m,yes);
+    return LV===3?{q:askY(m),pic:markPic(m,yes),opts:ALLY,a:ALLY.indexOf(ok),keep:true,two:true}:{q:askY(m),pic:markPic(m,yes),opts:[ansY(m,true),ansY(m,false)],a:yes?0:1,keep:true,two:true}})}}
 function isThat(k){return {type:'quiz',title:'¿Is that o Are those?',hint:'Uno → Is that… · Más de uno → Are those…',
-  items:pick(THINGS2,k).map(t=>({q:`… ${t.w} yours?`,pic:emo(t.e,1),opts:['Is that','Are those'],a:t.pl?1:0,keep:true,two:true}))}}
+  items:pick(MARK,k).map(t=>({q:`… ${t.w} yours?`,pic:t.p,opts:['Is that','Are those'],a:t.pl?1:0,keep:true,two:true}))}}
 function yoursQuiz(k,LV){const P=person();
   return {type:'quiz',title:'Contesta como si fueras él o ella',hint:'Si está en sus cosas: Yes. Si no: No. Uno → it is · Más de uno → they are.',pic:P.pic,
   items:P.qs(k).map(({t,yes})=>{const ok=ansY(t,yes);
@@ -214,30 +272,32 @@ const MISSIONS=[
 {id:'n120',name:'Numbers 1-20',sub:'Repaso del 1 al 20',color:'var(--c-cuerpo)',build(LV){
   const all=range(1,20),k=LV===1?4:LV===3?7:5;
   return [numHoles(pick(all,LV===1?3:4),LV),numWord(pick(all,k),1,20),numDictation(pick(all,k)),numWrite(pick(all,k)),numListen(pick(all,k),1,20)]}},
-{id:'things',name:'Things at home',sub:'phone, mirror, clock…',color:'var(--c-resp)',build(LV){
+{id:'things',name:'Things at home',sub:'sofa, bed, fridge…',color:'var(--c-resp)',build(LV){
   const k=LV===1?4:LV===3?6:5;
-  return [thMatch(pick(TH,LV===1?4:6)),thListen(pick(TH,k)),thRead(pick(TH,k)),thBuild(pick(TH,LV===3?4:3)),thWrite(pick(TH,LV===1?3:5)),...(LV===3?[thSpell(pick(TH,4))]:[])]}},
+  return [thMatch(pick(VOC,LV===1?4:6)),thListen(pick(VOC,k)),thRead(pick(VOC,k)),thGap(pick(VOC,k)),
+    ...(LV===1?[thBuild(pick(VOC,3))]:[thHoles(pick(VOC,4),LV)]),thWrite(pick(VOC,LV===1?3:LV===3?6:5)),...(LV===3?[thSpell(pick(VOC,4))]:[])]}},
 {id:'rooms',name:'Rooms',sub:'bedroom, kitchen…',color:'var(--c-loco)',build(LV){
   const k=LV===1?4:LV===3?8:6;
   return [rmMatch(),rmQuiz(k),rmListen(LV===1?3:4),rmWhere(k),rmBuild(),...(LV===1?[]:[rmWrite(LV===3?4:3)])]}},
 {id:'there',name:"There's a… in the…",sub:'Como en la ficha',color:'var(--c-sent)',build(LV){
   const k=LV===1?4:LV===3?6:5;
   return [thereWhere(k),thereWhat(LV===1?3:4),thereTF(k),thereFill(LV),readText(),...(LV===3?[thereWrite(5)]:[])]}},
-{id:'code',name:'Secret code',sub:'sixteen → m',color:'var(--c-exc)',build(LV){
-  return [codeLetter(LV===1?4:LV===3?7:5),codeBuild(LV===1?2:3),...(LV===1?[]:[codeWrite(LV===3?3:2)])]}},
+{id:'code',name:'Spelling',sub:'Deletrear y código secreto',color:'var(--c-exc)',build(LV){
+  return [letterListen(LV===1?4:6),spellQuiz(LV===1?3:5),spellWrite(LV===1?3:LV===3?6:4),codeLetter(LV===1?3:5),codeBuild(LV===1?2:3),...(LV===3?[codeWrite(2)]:[])]}},
 {id:'mine',name:"It's mine!",sub:"Whose is this? mine / yours",color:'var(--c-dig)',build(LV){
   const k=LV===1?4:LV===3?8:6;
-  return [mineMatch(),mineMean(),mineObj(LV===1?3:4),mineQuiz(k),mineFill(LV===1?3:4,LV),...(LV===1?[]:[mineWrite(LV===3?5:3)])]}},
+  return [mineMean(),mineObj(LV===1?3:4),mineQuiz(k),mineFill(LV===1?3:4,LV),...(LV===1?[]:[mineWrite(LV===3?5:3)])]}},
 {id:'yours',name:'Is that yours?',sub:'Yes, it is / No, they aren\'t',color:'var(--c-circ)',build(LV){
   const k=LV===1?5:LV===3?6:6;
-  return [isThat(LV===1?4:6),yoursQuiz(k,LV),yoursQuiz(k,LV),yoursFill(4,LV),...(LV===1?[]:[yoursWrite(LV===3?5:3)])]}}
+  return [isThat(LV===1?4:6),markQuiz(k,LV),yoursQuiz(k,LV),yoursFill(4,LV),...(LV===1?[]:[yoursWrite(LV===3?5:3)])]}}
 ];
 
-// Examen final: un poco de todo el tema 4 (y algún número)
-const FINAL={id:'final2',name:'Examen final',sub:'Un poco de todo',color:'var(--c-final)',build(LV){
+// Examen final: como la hoja «Repaso Unit 4» de la profe (completar letras, escribir objetos y números,
+// deletrear, Is that… yours? con ✓ / ✗ y It's mine / yours)
+const FINAL={id:'final2',name:'Examen final',sub:'Como el repaso de la profe',color:'var(--c-final)',build(LV){
   const k=LV===1?3:LV===3?5:4;
-  return [thListen(pick(TH,k)),thRead(pick(TH,k)),rmQuiz(k),thereWhere(k+1),readText(),mineQuiz(k+1),yoursQuiz(k+1,LV),
-    thWrite(pick(TH,LV===1?2:3)),numListen(pick(range(1,20),k),1,20)]}};
+  return [thGap(pick(VOC,k+1)),thWrite(pick(VOC,LV===1?3:5)),numWrite(pick(range(1,20),LV===1?4:6)),spellQuiz(k),spellWrite(LV===1?2:3),
+    isThat(k),markQuiz(k+1,LV),mineQuiz(k+1),thereWhere(k),numListen(pick(range(1,20),k),1,20)]}};
 
 registrar({
   id:'ingles',

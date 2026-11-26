@@ -290,7 +290,7 @@ a.round{text-decoration:none}
 <body>
 <canvas id="fx"></canvas>
 <main id="app"></main>
-<script src="temario/indice.js?v=202611241900"></script>
+<script src="temario/indice.js?v=202611261300"></script>
 <script>
 /* ======================================================================
    Motor de los juegos de repaso (empezaron siendo los de Nael). Todo lo común vive aquí.
@@ -828,7 +828,7 @@ function boot(){
   setTimeout(syncNow,300);
   const s=ASIG&&SUBJECTS.find(x=>x.id===ASIG);
   if(!s){hub();return}
-  const el=document.createElement('script');el.src=`temario/${s.file}?v=202611241900`;
+  const el=document.createElement('script');el.src=`temario/${s.file}?v=202611261300`;
   el.onerror=()=>{app.innerHTML='';app.append(h('p',{class:'qtext'},'No se ha podido cargar este temario.'),h('a',{class:'back',href:'base.html'},'Volver al inicio'))};
   document.body.append(el);
 }
